@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Lockify Admin</title>
+<style>
+  :root{
+    --p:#4F46E5; --p2:#7C3AED; --bg:#F5F7FB; --card:#FFFFFF; --bd:#E2E8F0;
+    --tx:#0F172A; --mu:#64748B; --ok:#10B981; --er:#EF4444; --wa:#F59E0B; --soft:#EEF2FF;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+    background:var(--bg); color:var(--tx); font-size:15px; line-height:1.45;
+    padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  h1,h2,h3{margin:0 0 8px}
+  h2{font-size:19px} h3{font-size:16px}
+  p{margin:0 0 10px}
+  .mu{color:var(--mu)}
+  .small{font-size:13px}
+
+  /* ---------- login ---------- */
+  #loginView{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .login-card{
+    width:100%;max-width:400px;background:var(--card);border:1px solid var(--bd);
+    border-radius:22px;padding:26px;box-shadow:0 10px 30px rgba(79,70,229,.12);
+  }
+  .brand{
+    display:inline-block;color:#fff;font-weight:700;letter-spacing:.04em;
+    padding:6px 14px;border-radius:12px;margin-bottom:14px;
+    background:linear-gradient(135deg,var(--p),var(--p2));
+  }
+
+  /* ---------- app ---------- */
+  header{
+    background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;
+    padding:calc(14px + env(safe-area-inset-top,0px)) 18px 14px;
+    display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  }
+  header .title{font-size:20px;font-weight:700;flex:1;min-width:140px}
+  header .who{font-size:12px;opacity:.85}
+  nav{
+    display:flex;gap:6px;overflow-x:auto;padding:10px 12px;background:var(--card);
+    border-bottom:1px solid var(--bd);position:sticky;top:0;z-index:5;
+  }
+  nav button{
+    flex:0 0 auto;border:0;background:transparent;color:var(--mu);font-weight:600;
+    padding:9px 14px;border-radius:12px;cursor:pointer;font-size:14px;
+  }
+  nav button.on{background:var(--soft);color:var(--p)}
+  main{max-width:980px;margin:0 auto;padding:16px}
+  .card{
+    background:var(--card);border:1px solid var(--bd);border-radius:18px;
+    padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(15,23,42,.04);
+  }
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:12px}
+  label{display:block;font-size:13px;font-weight:600;color:#475569}
+  input,select{
+    display:block;width:100%;margin-top:6px;padding:11px 12px;font-size:15px;
+    border:1px solid var(--bd);border-radius:12px;background:#F8FAFC;color:var(--tx);
+    font-family:inherit;
+  }
+  input:focus{outline:2px solid var(--p);outline-offset:0;background:#fff}
+  input[type=checkbox]{display:inline-block;width:auto;margin:0 8px 0 0;vertical-align:middle}
+  .chk{display:flex;align-items:center;margin-top:24px;font-weight:600}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{
+    border:0;border-radius:12px;padding:11px 18px;font-weight:700;cursor:pointer;font-size:14px;
+    color:#fff;background:linear-gradient(135deg,var(--p),var(--p2));
+  }
+  .btn:disabled{opacity:.6;cursor:default}
+  .btn.ghost{background:var(--soft);color:var(--p)}
+  .sm{
+    border:1px solid var(--bd);background:#fff;color:#334155;border-radius:9px;padding:6px 10px;
+    font-size:12px;font-weight:600;cursor:pointer;margin:2px 4px 2px 0;
+  }
+  .sm.danger{color:var(--er);border-color:#FECACA}
+  .sm.ok{color:#047857;border-color:#A7F3D0}
+  .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+  th,td{text-align:left;padding:10px 8px;border-bottom:1px solid #EEF2F7;vertical-align:middle}
+  th{font-size:12px;color:var(--mu);text-transform:uppercase;letter-spacing:.04em}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+  .b-ok{background:#DCFCE7;color:#15803D}
+  .b-wa{background:#FEF3C7;color:#B45309}
+  .b-mu{background:#F1F5F9;color:#64748B}
+  .b-er{background:#FEE2E2;color:#B91C1C}
+  .b-use{background:var(--soft);color:var(--p)}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:14px}
+  .stat .n{font-size:24px;font-weight:800;color:var(--p)}
+  .stat .l{font-size:12px;color:var(--mu)}
+  .note{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E;border-radius:12px;padding:10px 12px;font-size:13px;margin:10px 0}
+  .err{color:var(--er);font-size:13px;min-height:18px;margin-top:8px}
+  code{background:#F1F5F9;padding:1px 6px;border-radius:6px;font-size:13px}
+  #toast{
+    position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+    background:#0F172A;color:#fff;padding:11px 18px;border-radius:14px;font-size:14px;z-index:50;
+    max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.25);
+  }
+  #toast.bad{background:#B91C1C}
+</style>
+</head>
+<body>
+
+<!-- ======================= LOGIN ======================= -->
+<div id="loginView">
+  <div class="login-card">
+    <div class="brand">Lockify Admin</div>
+    <h2>Sign in</h2>
+    <p class="mu small">Only accounts listed under <code>admins</code> in your database can use this panel.</p>
+    <label>Email<input id="lEmail" type="email" autocomplete="username" placeholder="admin@example.com"></label>
+    <div style="height:10px"></div>
+    <label>Password<input id="lPass" type="password" autocomplete="current-password" placeholder="Your password"></label>
+    <div id="lErr" class="err"></div>
+    <div style="height:6px"></div>
+    <button id="lBtn" class="btn" style="width:100%">Sign in</button>
+  </div>
+</div>
+
+<!-- ======================= APP ======================= -->
+<div id="appView" hidden>
+  <header>
+    <div class="title">Lockify Admin</div>
+    <div class="who" id="whoAmI"></div>
+    <button class="sm" id="outBtn">Sign out</button>
+  </header>
+  <nav id="tabs">
+    <button data-tab="dashboard" class="on">Dashboard</button>
+    <button data-tab="cloud">Cloudinary</button>
+    <button data-tab="tg">Telegram bots</button>
+    <button data-tab="limits">Limits &amp; Ads</button>
+    <button data-tab="users">Users</button>
+  </nav>
+
+  <main>
+    <!-- ===== Dashboard ===== -->
+    <section id="tab-dashboard" class="tab">
+      <div class="stats">
+        <div class="stat"><div class="n" id="stUsers">-</div><div class="l">Users</div></div>
+        <div class="stat"><div class="n" id="stFiles">-</div><div class="l">Backed-up files</div></div>
+        <div class="stat"><div class="n" id="stUsed">-</div><div class="l">Total storage used</div></div>
+        <div class="stat"><div class="n" id="stBanned">-</div><div class="l">Banned users</div></div>
+      </div>
+      <div class="card">
+        <h2>Setup checklist</h2>
+        <div id="checklist" class="small"></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="refreshStats">Refresh statistics</button>
+      </div>
+    </section>
+
+    <!-- ===== Cloudinary ===== -->
+    <section id="tab-cloud" class="tab" hidden>
+      <div class="card">
+        <h2>Cloudinary accounts</h2>
+        <p class="mu small">Uploads use the first account that is <b>enabled</b> and <b>not full</b> (lowest order number first). If it fails, the app automatically tries the next one.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Order</th><th>Label</th><th>Cloud name</th><th>Preset</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="cloudRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3 id="cloudFormTitle">Add account</h3>
+        <div class="grid">
+          <label>Label<input id="cLabel" placeholder="Account 1"></label>
+          <label>Cloud name<input id="cName" placeholder="my-cloud-name" autocapitalize="off" autocomplete="off"></label>
+          <label>Upload preset (unsigned)<input id="cPreset" placeholder="lockify_unsigned" autocapitalize="off" autocomplete="off"></label>
+          <label>Order (optional)<input id="cOrder" type="number" min="0" placeholder="auto"></label>
+        </div>
+        <div class="row">
+          <button class="btn" id="cSave">Add account</button>
+          <button class="btn ghost" id="cCancel" hidden>Cancel</button>
+        </div>
+        <div class="note">Cloud name and preset are not secret. Never put your Cloudinary <b>API secret</b> anywhere in this panel.</div>
+      </div>
+    </section>
+
+    <!-- ===== Telegram ===== -->
+    <section id="tab-tg" class="tab" hidden>
+      <div class="card">
+        <h2>Telegram bots</h2>
+        <p class="mu small">Large files and documents go to a Telegram channel through these bots. Add several bots and the app uses the first one that is <b>enabled</b> and <b>not full</b>.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>Order</th><th>Label</th><th>Token</th><th>Chat / Channel ID</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="tgRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3 id="tgFormTitle">Add bot</h3>
+        <div class="grid">
+          <label>Label<input id="tLabel" placeholder="Bot 1"></label>
+          <label>Bot token<input id="tToken" placeholder="123456789:AAxxxxxxxx" autocapitalize="off" autocomplete="off"></label>
+          <label>Channel / chat ID<input id="tChat" placeholder="-1001234567890" autocapitalize="off" autocomplete="off"></label>
+          <label>Order (optional)<input id="tOrder" type="number" min="0" placeholder="auto"></label>
+        </div>
+        <div class="row">
+          <button class="btn" id="tSave">Add bot</button>
+          <button class="btn ghost" id="tCancel" hidden>Cancel</button>
+        </div>
+        <div class="note">
+          <b>Security:</b> bot tokens are readable by every logged-in app user (the app needs them to upload).
+          Use a <b>private channel</b> only for storage, keep the bots limited to that channel, and rotate a token with @BotFather if you suspect a leak.
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Limits & Ads ===== -->
+    <section id="tab-limits" class="tab" hidden>
+      <div class="card">
+        <h2>Storage limits</h2>
+        <div class="grid">
+          <label>Free storage per user (MB)<input id="fFree" type="number" min="0" step="1"></label>
+          <label>Max image size via Cloudinary (MB)<input id="fImg" type="number" min="1" max="10" step="1"></label>
+          <label>Max file size via Telegram (MB)<input id="fTg" type="number" min="1" max="50" step="1"></label>
+        </div>
+        <p class="mu small">Telegram bots can upload up to 50 MB but can only download up to 20 MB through the normal Bot API, so 20 MB is the safe value for files users must be able to restore.</p>
+      </div>
+      <div class="card">
+        <h2>Earn storage (watch a page)</h2>
+        <div class="grid">
+          <label class="chk"><input id="aOn" type="checkbox"> Enabled</label>
+          <label>Page / ad URL (https)<input id="aUrl" placeholder="https://example.com/ad.html" autocapitalize="off"></label>
+          <label>Seconds to watch<input id="aSec" type="number" min="5" max="300" step="1"></label>
+          <label>Reward (MB)<input id="aMb" type="number" min="1" max="1000" step="1"></label>
+          <label>Cooldown between claims (seconds)<input id="aCool" type="number" min="0" max="86400" step="1"></label>
+          <label>Max claims per day<input id="aDay" type="number" min="1" max="100" step="1"></label>
+        </div>
+      </div>
+      <div class="row"><button class="btn" id="saveLimits">Save settings</button></div>
+    </section>
+
+    <!-- ===== Users ===== -->
+    <section id="tab-users" class="tab" hidden>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin:0">Users</h2>
+          <div class="row">
+            <input id="uSearch" placeholder="Search name or email" style="margin:0;min-width:200px">
+            <button class="btn" id="uLoad">Load users</button>
+          </div>
+        </div>
+        <p class="mu small" id="uInfo" style="margin-top:10px">Press “Load users” to fetch the list.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>User</th><th>Files</th><th>Storage</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="userRows"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="toast" hidden></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ============================================================
+     1) Paste your two values here (Firebase Project settings)
+     ============================================================ */
+  var CONFIG = {
+    apiKey: "PASTE_YOUR_WEB_API_KEY_HERE",
+    dbUrl: "PASTE_YOUR_DATABASE_URL_HERE"   // e.g. https://myproject-default-rtdb.firebaseio.com
+  };
+  CONFIG.dbUrl = CONFIG.dbUrl.replace(/\/+$/, "");
+
+  /* ============================================================
+     helpers
+     ============================================================ */
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  var toastTimer = null;
+  function toast(msg, bad) {
+    var t = $("#toast");
+    t.textContent = msg;
+    t.className = bad ? "bad" : "";
+    t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 4200);
+  }
+  function fmtBytes(b) {
+    b = Number(b) || 0;
+    if (b < 1024) return b + " B";
+    var kb = b / 1024; if (kb < 1024) return kb.toFixed(0) + " KB";
+    var mb = kb / 1024; if (mb < 1024) return mb.toFixed(1) + " MB";
+    return (mb / 1024).toFixed(2) + " GB";
+  }
+  function num(v, d) { var n = Number(v); return isFinite(n) ? n : d; }
+  function configured() {
+    return CONFIG.apiKey.indexOf("PASTE_") !== 0 && CONFIG.dbUrl.indexOf("PASTE_") !== 0;
+  }
+  function busy(btn, on, text) {
+    if (!btn) return;
+    if (on) { btn.dataset.t = btn.textContent; btn.textContent = text || "Please wait..."; btn.disabled = true; }
+    else { btn.textContent = btn.dataset.t || btn.textContent; btn.disabled = false; }
+  }
+
+  /* ============================================================
+     Firebase Auth (REST) + Realtime Database (REST)
+     ============================================================ */
+  var S = { idToken: "", refreshToken: "", uid: "", email: "", exp: 0 };
+
+  function authMessage(j) {
+    var m = (j && j.error && j.error.message) || "";
+    if (m.indexOf("EMAIL_NOT_FOUND") === 0 || m.indexOf("INVALID_PASSWORD") === 0 || m.indexOf("INVALID_LOGIN_CREDENTIALS") === 0)
+      return "Wrong email or password.";
+    if (m.indexOf("TOO_MANY_ATTEMPTS") === 0) return "Too many attempts. Try again later.";
+    if (m.indexOf("USER_DISABLED") === 0) return "This account is disabled.";
+    if (m.indexOf("API key") >= 0 || m.indexOf("API_KEY") >= 0) return "The API key is not valid. Check CONFIG.apiKey.";
+    return m ? ("Sign-in failed: " + m) : "Sign-in failed.";
+  }
+
+  async function signIn(email, password) {
+    var r = await fetch("https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + encodeURIComponent(CONFIG.apiKey), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: email, password: password, returnSecureToken: true })
+    });
+    var j = await r.json();
+    if (!r.ok) throw new Error(authMessage(j));
+    S.idToken = j.idToken; S.refreshToken = j.refreshToken; S.uid = j.localId; S.email = j.email;
+    S.exp = Date.now() + (parseInt(j.expiresIn, 10) - 90) * 1000;
+  }
+
+  async function ensureToken() {
+    if (Date.now() < S.exp) return;
+    var r = await fetch("https://securetoken.googleapis.com/v1/token?key=" + encodeURIComponent(CONFIG.apiKey), {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: "grant_type=refresh_token&refresh_token=" + encodeURIComponent(S.refreshToken)
+    });
+    var j = await r.json();
+    if (!r.ok) throw new Error("Session expired. Please sign in again.");
+    S.idToken = j.id_token; S.refreshToken = j.refresh_token;
+    S.exp = Date.now() + (parseInt(j.expires_in, 10) - 90) * 1000;
+  }
+
+  async function db(method, path, body, query) {
+    await ensureToken();
+    var url = CONFIG.dbUrl + "/" + path + ".json?auth=" + encodeURIComponent(S.idToken);
+    if (query) url += "&" + query;
+    var opt = { method: method, headers: {} };
+    if (body !== undefined) {
+      opt.body = JSON.stringify(body);
+      opt.headers["Content-Type"] = "application/json";
+    }
+    var r = await fetch(url, opt);
+    var text = await r.text();
+    var data = null;
+    try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+    if (!r.ok) {
+      var msg = (data && data.error) ? data.error : ("HTTP " + r.status);
+      if (String(msg).toLowerCase().indexOf("permission") >= 0) msg = "Permission denied. Check your database rules and that you are listed under admins.";
+      throw new Error(msg);
+    }
+    return data;
+  }
+
+  /* ============================================================
+     state
+     ============================================================ */
+  var cfg = {};          // /config
+  var users = [];        // loaded users
+  var editCloud = null;  // id being edited
+  var editTg = null;
+
+  function listFrom(node) {
+    return Object.keys(node || {}).map(function (id) {
+      var o = Object.assign({}, node[id]); o.id = id; return o;
+    }).sort(function (a, b) { return num(a.order, 0) - num(b.order, 0); });
+  }
+  function nextOrder(list) {
+    var m = -1; list.forEach(function (x) { m = Math.max(m, num(x.order, 0)); }); return m + 1;
+  }
+  function statusOf(x) { return x.enabled === false ? "disabled" : (x.full ? "full" : "active"); }
+  function badgeHtml(x, inUseId) {
+    var s = statusOf(x);
+    var h = s === "active" ? '<span class="badge b-ok">Active</span>' :
+            s === "full" ? '<span class="badge b-wa">Full</span>' :
+            '<span class="badge b-mu">Disabled</span>';
+    if (inUseId && x.id === inUseId) h += ' <span class="badge b-use">In use</span>';
+    return h;
+  }
+  function firstActiveId(list) {
+    for (var i = 0; i < list.length; i++) if (statusOf(list[i]) === "active") return list[i].id;
+    return "";
+  }
+
+  async function loadConfig() {
+    cfg = (await db("GET", "config")) || {};
+    renderCloud(); renderTg(); renderLimits(); renderChecklist();
+  }
+
+  /* ============================================================
+     Cloudinary tab
+     ============================================================ */
+  function renderCloud() {
+    var list = listFrom(cfg.cloudinary && cfg.cloudinary.accounts);
+    var use = firstActiveId(list);
+    $("#cloudRows").innerHTML = list.length ? list.map(function (r) {
+      return "<tr>" +
+        "<td>" + esc(num(r.order, 0)) + "</td>" +
+        "<td>" + esc(r.label || "-") + "</td>" +
+        "<td>" + esc(r.cloudName) + "</td>" +
+        "<td>" + esc(r.uploadPreset) + "</td>" +
+        "<td>" + badgeHtml(r, use) + "</td>" +
+        '<td><button class="sm" data-act="en" data-id="' + esc(r.id) + '">' + (r.enabled === false ? "Enable" : "Disable") + "</button>" +
+        '<button class="sm" data-act="full" data-id="' + esc(r.id) + '">' + (r.full ? "Mark not full" : "Mark full") + "</button>" +
+        '<button class="sm" data-act="edit" data-id="' + esc(r.id) + '">Edit</button>' +
+        '<button class="sm danger" data-act="del" data-id="' + esc(r.id) + '">Delete</button></td></tr>';
+    }).join("") : '<tr><td colspan="6" class="mu">No accounts yet. Add your first one below.</td></tr>';
+  }
+
+  function resetCloudForm() {
+    editCloud = null;
+    $("#cLabel").value = ""; $("#cName").value = ""; $("#cPreset").value = ""; $("#cOrder").value = "";
+    $("#cloudFormTitle").textContent = "Add account";
+    $("#cSave").textContent = "Add account";
+    $("#cCancel").hidden = true;
+  }
+
+  $("#cloudRows").addEventListener("click", async function (e) {
+    var b = e.target.closest("button[data-act]"); if (!b) return;
+    var id = b.dataset.id, act = b.dataset.act;
+    var acc = ((cfg.cloudinary || {}).accounts || {})[id];
+    if (!acc) return;
+    try {
+      if (act === "en") await db("PATCH", "config/cloudinary/accounts/" + id, { enabled: acc.enabled === false });
+      else if (act === "full") await db("PATCH", "config/cloudinary/accounts/" + id, { full: !acc.full });
+      else if (act === "del") {
+        if (!confirm("Delete this Cloudinary account entry? Files already uploaded keep working.")) return;
+        await db("DELETE", "config/cloudinary/accounts/" + id);
+        if (editCloud === id) resetCloudForm();
+      } else if (act === "edit") {
+        editCloud = id;
+        $("#cLabel").value = acc.label || ""; $("#cName").value = acc.cloudName || "";
+        $("#cPreset").value = acc.uploadPreset || ""; $("#cOrder").value = num(acc.order, 0);
+        $("#cloudFormTitle").textContent = "Edit account";
+        $("#cSave").textContent = "Save changes";
+        $("#cCancel").hidden = false;
+        $("#cLabel").scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      await loadConfig();
+      toast("Saved");
+    } catch (err) { toast(err.message, true); }
+  });
+
+  $("#cCancel").addEventListener("click", resetCloudForm);
+
+  $("#cSave").addEventListener("click", async function () {
+    var label = $("#cLabel").value.trim();
+    var cloud = $("#cName").value.trim();
+    var preset = $("#cPreset").value.trim();
+    var orderTxt = $("#cOrder").value.trim();
+    if (!/^[A-Za-z0-9_-]{2,}$/.test(cloud)) return toast("The cloud name looks invalid (letters, numbers, - and _ only).", true);
+    if (!/^[A-Za-z0-9_.-]{2,}$/.test(preset)) return toast("Enter the upload preset name.", true);
+    var list = listFrom(cfg.cloudinary && cfg.cloudinary.accounts);
+    var order = orderTxt === "" ? nextOrder(list) : Math.max(0, parseInt(orderTxt, 10) || 0);
+    var btn = $("#cSave");
+    busy(btn, true);
+    try {
+      if (editCloud) {
+        await db("PATCH", "config/cloudinary/accounts/" + editCloud, {
+          label: label || cloud, cloudName: cloud, uploadPreset: preset, order: order
+        });
+      } else {
+        await db("POST", "config/cloudinary/accounts", {
+          label: label || cloud, cloudName: cloud, uploadPreset: preset,
+          enabled: true, full: false, order: order, createdAt: Date.now()
+        });
+      }
+      resetCloudForm();
+      await loadConfig();
+      toast("Saved");
+    } catch (err) { toast(err.message, true); }
+    busy(btn, false);
+  });
+
+  /* ============================================================
+     Telegram tab
+     ============================================================ */
+  function maskToken(t) {
+    t = String(t || "");
+    return t.length > 12 ? t.slice(0, 6) + "..." + t.slice(-4) : "***";
+  }
+
+  function renderTg() {
+    var list = listFrom(cfg.telegram && cfg.telegram.bots);
+    var use = firstActiveId(list);
+    $("#tgRows").innerHTML = list.length ? list.map(function (r) {
+      return "<tr>" +
+        "<td>" + esc(num(r.order, 0)) + "</td>" +
+        "<td>" + esc(r.label || "-") + "</td>" +
+        "<td><code>" + esc(maskToken(r.token)) + "</code></td>" +
+        "<td>" + esc(r.chatId) + "</td>" +
+        "<td>" + badgeHtml(r, use) + "</td>" +
+        '<td><button class="sm ok" data-act="test" data-id="' + esc(r.id) + '">Test</button>' +
+        '<button class="sm" data-act="en" data-id="' + esc(r.id) + '">' + (r.enabled === false ? "Enable" : "Disable") + "</button>" +
+        '<button class="sm" data-act="full" data-id="' + esc(r.id) + '">' + (r.full ? "Mark not full" : "Mark full") + "</button>" +
+        '<button class="sm" data-act="edit" data-id="' + esc(r.id) + '">Edit</button>' +
+        '<button class="sm danger" data-act="del" data-id="' + esc(r.id) + '">Delete</button></td></tr>';
+    }).join("") : '<tr><td colspan="6" class="mu">No bots yet. Add your first one below.</td></tr>';
+  }
+
+  function resetTgForm() {
+    editTg = null;
+    $("#tLabel").value = ""; $("#tToken").value = ""; $("#tChat").value = ""; $("#tOrder").value = "";
+    $("#tgFormTitle").textContent = "Add bot";
+    $("#tSave").textContent = "Add bot";
+    $("#tCancel").hidden = true;
+  }
+
+  async function testBot(token, chatId) {
+    var base = "https://api.telegram.org/bot" + token;
+    var me = await (await fetch(base + "/getMe")).json();
+    if (!me.ok) throw new Error("The bot token is not valid.");
+    var out = "Bot @" + me.result.username + " is valid";
+    if (chatId) {
+      var ch = await (await fetch(base + "/getChat?chat_id=" + encodeURIComponent(chatId))).json();
+      if (!ch.ok) throw new Error(out + ", but it cannot access this chat. Add the bot as an admin of the channel.");
+      var send = await (await fetch(base + "/sendMessage", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chat_id: chatId, text: "Lockify bot test OK" })
+      })).json();
+      if (!send.ok) throw new Error(out + ", but it cannot post to the chat. Give the bot permission to post messages.");
+      out += " and can post to " + (ch.result.title || ch.result.username || ch.result.id);
+    }
+    return out;
+  }
+
+  $("#tgRows").addEventListener("click", async function (e) {
+    var b = e.target.closest("button[data-act]"); if (!b) return;
+    var id = b.dataset.id, act = b.dataset.act;
+    var bot = ((cfg.telegram || {}).bots || {})[id];
+    if (!bot) return;
+    try {
+      if (act === "test") {
+        busy(b, true, "Testing...");
+        try { toast(await testBot(bot.token, bot.chatId)); }
+        catch (er) { toast(er.message, true); }
+        busy(b, false);
+        return;
+      }
+      if (act === "en") await db("PATCH", "config/telegram/bots/" + id, { enabled: bot.enabled === false });
+      else if (act === "full") await db("PATCH", "config/telegram/bots/" + id, { full: !bot.full });
+      else if (act === "del") {
+        if (!confirm("Delete this bot entry? Files already stored in Telegram stay there but the app may not be able to download them without this token.")) return;
+        await db("DELETE", "config/telegram/bots/" + id);
+        if (editTg === id) resetTgForm();
+      } else if (act === "edit") {
+        editTg = id;
+        $("#tLabel").value = bot.label || ""; $("#tToken").value = bot.token || "";
+        $("#tChat").value = bot.chatId || ""; $("#tOrder").value = num(bot.order, 0);
+        $("#tgFormTitle").textContent = "Edit bot";
+        $("#tSave").textContent = "Save changes";
+        $("#tCancel").hidden = false;
+        $("#tLabel").scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      await loadConfig();
+      toast("Saved");
+    } catch (err) { toast(err.message, true); }
+  });
+
+  $("#tCancel").addEventListener("click", resetTgForm);
+
+  $("#tSave").addEventListener("click", async function () {
+    var label = $("#tLabel").value.trim();
+    var token = $("#tToken").value.trim();
+    var chat = $("#tChat").value.trim();
+    var orderTxt = $("#tOrder").value.trim();
+    if (!/^\d{6,}:[A-Za-z0-9_-]{20,}$/.test(token)) return toast("The bot token looks invalid. Copy it again from @BotFather.", true);
+    if (!/^-?\d+$/.test(chat) && !/^@[A-Za-z0-9_]{5,}$/.test(chat)) return toast("The channel ID should look like -1001234567890.", true);
+    var list = listFrom(cfg.telegram && cfg.telegram.bots);
+    var order = orderTxt === "" ? nextOrder(list) : Math.max(0, parseInt(orderTxt, 10) || 0);
+    var btn = $("#tSave");
+    busy(btn, true);
+    try {
+      if (editTg) {
+        await db("PATCH", "config/telegram/bots/" + editTg, { label: label || "Bot", token: token, chatId: chat, order: order });
+      } else {
+        await db("POST", "config/telegram/bots", {
+          label: label || "Bot", token: token, chatId: chat, enabled: true, full: false, order: order, createdAt: Date.now()
+        });
+      }
+      resetTgForm();
+      await loadConfig();
+      toast("Saved. Press Test to check the bot.");
+    } catch (err) { toast(err.message, true); }
+    busy(btn, false);
+  });
+
+  /* ============================================================
+     Limits & Ads tab
+     ============================================================ */
+  function renderLimits() {
+    var l = cfg.limits || {}, a = cfg.ads || {};
+    $("#fFree").value = Math.round(num(l.freeBytes, 209715200) / 1048576);
+    $("#fImg").value = Math.round(num(l.maxImageBytes, 10485760) / 1048576);
+    $("#fTg").value = Math.round(num(l.maxTelegramBytes, 20971520) / 1048576);
+    $("#aOn").checked = a.enabled === true;
+    $("#aUrl").value = a.adUrl || "";
+    $("#aSec").value = num(a.watchSeconds, 15);
+    $("#aMb").value = Math.round(num(a.rewardBytes, 52428800) / 1048576);
+    $("#aCool").value = Math.round(num(a.cooldownMs, 60000) / 1000);
+    $("#aDay").value = num(a.dailyMax, 5);
+  }
+
+  $("#saveLimits").addEventListener("click", async function () {
+    var free = num($("#fFree").value, -1), img = num($("#fImg").value, -1), tg = num($("#fTg").value, -1);
+    var sec = num($("#aSec").value, -1), mb = num($("#aMb").value, -1), cool = num($("#aCool").value, -1), day = num($("#aDay").value, -1);
+    var url = $("#aUrl").value.trim();
+    if (free < 0 || img < 1 || img > 10 || tg < 1 || tg > 50) return toast("Check the storage limit values (image max 10 MB, Telegram max 50 MB).", true);
+    if ($("#aOn").checked && !/^https:\/\/.{4,}/.test(url)) return toast("The ad URL must start with https://", true);
+    if (sec < 5 || sec > 300 || mb < 1 || cool < 0 || day < 1) return toast("Check the earn-storage values.", true);
+    var btn = $("#saveLimits");
+    busy(btn, true);
+    try {
+      await db("PATCH", "config/limits", {
+        freeBytes: Math.round(free * 1048576), maxImageBytes: Math.round(img * 1048576), maxTelegramBytes: Math.round(tg * 1048576)
+      });
+      await db("PUT", "config/ads", {
+        enabled: $("#aOn").checked, adUrl: url, watchSeconds: Math.round(sec),
+        rewardBytes: Math.round(mb * 1048576), cooldownMs: Math.round(cool * 1000), dailyMax: Math.round(day)
+      });
+      await loadConfig();
+      toast("Settings saved");
+    } catch (err) { toast(err.message, true); }
+    busy(btn, false);
+  });
+
+  /* ============================================================
+     Users tab
+     ============================================================ */
+  function userLimit(u) {
+    var free = num((cfg.limits || {}).freeBytes, 209715200);
+    return free + u.bonus + u.extra;
+  }
+
+  async function loadUsers() {
+    var btn = $("#uLoad");
+    busy(btn, true, "Loading...");
+    try {
+      var idx = (await db("GET", "userIndex")) || {};
+      var uids = Object.keys(idx);
+      users = [];
+      $("#uInfo").textContent = uids.length ? ("Loading " + uids.length + " users...") : "No users yet. Users appear here after they open the app.";
+      var i = 0;
+      async function worker() {
+        while (i < uids.length) {
+          var uid = uids[i++];
+          var u = { uid: uid, name: idx[uid].name || "", email: idx[uid].email || "", lastSeen: idx[uid].lastSeen || 0,
+                    used: 0, bonus: 0, extra: 0, banned: false, files: 0 };
+          var res = await Promise.all([
+            db("GET", "users/" + uid + "/usage/usedBytes").catch(function () { return 0; }),
+            db("GET", "users/" + uid + "/earn/bonusBytes").catch(function () { return 0; }),
+            db("GET", "users/" + uid + "/quota/extraBytes").catch(function () { return 0; }),
+            db("GET", "users/" + uid + "/status/banned").catch(function () { return false; }),
+            db("GET", "users/" + uid + "/files", undefined, "shallow=true").catch(function () { return null; })
+          ]);
+          u.used = num(res[0], 0); u.bonus = num(res[1], 0); u.extra = num(res[2], 0);
+          u.banned = res[3] === true; u.files = res[4] ? Object.keys(res[4]).length : 0;
+          users.push(u);
+        }
+      }
+      var workers = [];
+      for (var k = 0; k < Math.min(5, uids.length); k++) workers.push(worker());
+      await Promise.all(workers);
+      users.sort(function (a, b) { return b.lastSeen - a.lastSeen; });
+      renderUsers(); renderStats();
+      $("#uInfo").textContent = users.length + " users loaded.";
+    } catch (err) { toast(err.message, true); $("#uInfo").textContent = "Could not load users."; }
+    busy(btn, false);
+  }
+
+  function renderUsers() {
+    var q = $("#uSearch").value.trim().toLowerCase();
+    var rows = users.filter(function (u) { return !q || (u.name + " " + u.email).toLowerCase().indexOf(q) >= 0; });
+    $("#userRows").innerHTML = rows.length ? rows.map(function (u) {
+      return "<tr>" +
+        "<td><b>" + esc(u.name || "-") + "</b><br><span class='mu small'>" + esc(u.email) + "</span></td>" +
+        "<td>" + esc(u.files) + "</td>" +
+        "<td>" + esc(fmtBytes(u.used)) + " / " + esc(fmtBytes(userLimit(u))) + "</td>" +
+        "<td>" + (u.banned ? '<span class="badge b-er">Banned</span>' : '<span class="badge b-ok">OK</span>') + "</td>" +
+        '<td><button class="sm ' + (u.banned ? "ok" : "danger") + '" data-act="ban" data-uid="' + esc(u.uid) + '">' + (u.banned ? "Unban" : "Ban") + "</button>" +
+        '<button class="sm" data-act="extra" data-uid="' + esc(u.uid) + '">Set extra MB</button></td></tr>';
+    }).join("") : '<tr><td colspan="5" class="mu">Nothing to show.</td></tr>';
+  }
+
+  $("#uSearch").addEventListener("input", renderUsers);
+  $("#uLoad").addEventListener("click", loadUsers);
+
+  $("#userRows").addEventListener("click", async function (e) {
+    var b = e.target.closest("button[data-act]"); if (!b) return;
+    var u = users.filter(function (x) { return x.uid === b.dataset.uid; })[0];
+    if (!u) return;
+    try {
+      if (b.dataset.act === "ban") {
+        var nb = !u.banned;
+        if (!confirm((nb ? "Ban " : "Unban ") + (u.email || u.uid) + "?")) return;
+        await db("PUT", "users/" + u.uid + "/status/banned", nb);
+        u.banned = nb;
+      } else if (b.dataset.act === "extra") {
+        var v = prompt("Extra storage for " + (u.email || u.uid) + " in MB (0 to remove):", Math.round(u.extra / 1048576));
+        if (v === null) return;
+        var mb = Math.max(0, num(v, -1));
+        if (mb < 0 || v.trim() === "") return toast("Enter a number.", true);
+        await db("PUT", "users/" + u.uid + "/quota/extraBytes", Math.round(mb * 1048576));
+        u.extra = Math.round(mb * 1048576);
+      }
+      renderUsers(); renderStats();
+      toast("Saved");
+    } catch (err) { toast(err.message, true); }
+  });
+
+  /* ============================================================
+     Dashboard
+     ============================================================ */
+  function renderStats() {
+    if (!users.length) return;
+    var files = 0, used = 0, banned = 0;
+    users.forEach(function (u) { files += u.files; used += u.used; if (u.banned) banned++; });
+    $("#stUsers").textContent = users.length;
+    $("#stFiles").textContent = files;
+    $("#stUsed").textContent = fmtBytes(used);
+    $("#stBanned").textContent = banned;
+  }
+
+  function renderChecklist() {
+    var cl = listFrom(cfg.cloudinary && cfg.cloudinary.accounts).filter(function (x) { return statusOf(x) === "active"; }).length;
+    var tg = listFrom(cfg.telegram && cfg.telegram.bots).filter(function (x) { return statusOf(x) === "active"; }).length;
+    var lim = cfg.limits && cfg.limits.freeBytes;
+    var ads = cfg.ads && cfg.ads.enabled === true;
+    function item(ok, text) {
+      return '<div style="padding:6px 0"><span class="badge ' + (ok ? "b-ok" : "b-wa") + '">' + (ok ? "Done" : "To do") + "</span> " + text + "</div>";
+    }
+    $("#checklist").innerHTML =
+      item(cl > 0, "Cloudinary accounts ready: <b>" + cl + "</b>") +
+      item(tg > 0, "Telegram bots ready: <b>" + tg + "</b>") +
+      item(!!lim, "Storage limits saved") +
+      item(ads, "Earn-storage page enabled");
+  }
+
+  $("#refreshStats").addEventListener("click", loadUsers);
+
+  /* ============================================================
+     navigation, login, logout
+     ============================================================ */
+  $("#tabs").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-tab]"); if (!b) return;
+    $$("#tabs button").forEach(function (x) { x.classList.toggle("on", x === b); });
+    $$(".tab").forEach(function (t) { t.hidden = (t.id !== "tab-" + b.dataset.tab); });
+  });
+
+  async function doLogin() {
+    var err = $("#lErr"); err.textContent = "";
+    if (!configured()) { err.textContent = "Open index.html and paste your Web API key and Database URL at the top of the script."; return; }
+    var email = $("#lEmail").value.trim(), pass = $("#lPass").value;
+    if (!email || !pass) { err.textContent = "Enter your email and password."; return; }
+    var btn = $("#lBtn");
+    busy(btn, true, "Signing in...");
+    try {
+      await signIn(email, pass);
+      var isAdmin = await db("GET", "admins/" + S.uid).catch(function () { return null; });
+      if (isAdmin !== true) {
+        S = { idToken: "", refreshToken: "", uid: "", email: "", exp: 0 };
+        throw new Error("This account is not an admin. Add its UID under admins in the database.");
+      }
+      $("#loginView").hidden = true;
+      $("#appView").hidden = false;
+      $("#whoAmI").textContent = S.email;
+      $("#lPass").value = "";
+      await loadConfig();
+      loadUsers();
+    } catch (e) { err.textContent = e.message; }
+    busy(btn, false);
+  }
+
+  $("#lBtn").addEventListener("click", doLogin);
+  $("#lPass").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
+  $("#outBtn").addEventListener("click", function () {
+    S = { idToken: "", refreshToken: "", uid: "", email: "", exp: 0 };
+    cfg = {}; users = [];
+    $("#appView").hidden = true; $("#loginView").hidden = false;
+  });
+})();
+</script>
+</body>
+</html>
