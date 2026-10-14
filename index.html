@@ -5,6 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <title>Lockify Admin</title>
+<script>
+(function () {
+  var p = (new URLSearchParams(location.search).get("page") || "").toLowerCase();
+  if (p === "delete-account") p = "delete";
+  var titles = { privacy: "Lockify Privacy Policy", terms: "Lockify Terms of Service", "delete": "Delete your Lockify account", ad: "Sponsored" };
+  if (titles[p]) { window.__PUB = p; document.documentElement.className = "is-" + p; document.title = titles[p]; }
+  else { window.__PUB = ""; document.documentElement.className = "is-admin"; }
+})();
+</script>
 <style>
   :root{
     --p:#4F46E5; --p2:#7C3AED; --bg:#F5F7FB; --card:#FFFFFF; --bd:#E2E8F0;
@@ -24,7 +33,6 @@
   .mu{color:var(--mu)}
   .small{font-size:13px}
 
-  /* ---------- login ---------- */
   #loginView{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
   .login-card{
     width:100%;max-width:400px;background:var(--card);border:1px solid var(--bd);
@@ -36,7 +44,6 @@
     background:linear-gradient(135deg,var(--p),var(--p2));
   }
 
-  /* ---------- app ---------- */
   header{
     background:linear-gradient(135deg,var(--p),var(--p2));color:#fff;
     padding:calc(14px + env(safe-area-inset-top,0px)) 18px 14px;
@@ -53,19 +60,20 @@
     padding:9px 14px;border-radius:12px;cursor:pointer;font-size:14px;
   }
   nav button.on{background:var(--soft);color:var(--p)}
-  main{max-width:980px;margin:0 auto;padding:16px}
+  main{max-width:1000px;margin:0 auto;padding:16px}
   .card{
     background:var(--card);border:1px solid var(--bd);border-radius:18px;
     padding:18px;margin-bottom:16px;box-shadow:0 2px 8px rgba(15,23,42,.04);
   }
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-bottom:12px}
   label{display:block;font-size:13px;font-weight:600;color:#475569}
-  input,select{
+  input,select,textarea{
     display:block;width:100%;margin-top:6px;padding:11px 12px;font-size:15px;
     border:1px solid var(--bd);border-radius:12px;background:#F8FAFC;color:var(--tx);
     font-family:inherit;
   }
-  input:focus{outline:2px solid var(--p);outline-offset:0;background:#fff}
+  textarea{min-height:90px;resize:vertical}
+  input:focus,textarea:focus{outline:2px solid var(--p);outline-offset:0;background:#fff}
   input[type=checkbox]{display:inline-block;width:auto;margin:0 8px 0 0;vertical-align:middle}
   .chk{display:flex;align-items:center;margin-top:24px;font-weight:600}
   .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
@@ -75,6 +83,7 @@
   }
   .btn:disabled{opacity:.6;cursor:default}
   .btn.ghost{background:var(--soft);color:var(--p)}
+  .btn.red{background:linear-gradient(135deg,#EF4444,#DC2626)}
   .sm{
     border:1px solid var(--bd);background:#fff;color:#334155;border-radius:9px;padding:6px 10px;
     font-size:12px;font-weight:600;cursor:pointer;margin:2px 4px 2px 0;
@@ -98,12 +107,47 @@
   .note{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E;border-radius:12px;padding:10px 12px;font-size:13px;margin:10px 0}
   .err{color:var(--er);font-size:13px;min-height:18px;margin-top:8px}
   code{background:#F1F5F9;padding:1px 6px;border-radius:6px;font-size:13px}
+  .bar{height:10px;border-radius:6px;background:#E2E8F0;overflow:hidden;min-width:80px}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,var(--p),var(--p2))}
+  .pg{border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px;background:#FCFCFF}
+  .pgmsg{font-size:13px;margin-top:8px;min-height:18px}
+  .thumb{width:46px;height:46px;border-radius:10px;object-fit:cover;background:#E2E8F0;display:block}
+  .modal{position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:40;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow:auto}
+  .modal-card{background:#fff;border-radius:18px;max-width:760px;width:100%;padding:18px;margin:auto}
   #toast{
     position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
-    background:#0F172A;color:#fff;padding:11px 18px;border-radius:14px;font-size:14px;z-index:50;
+    background:#0F172A;color:#fff;padding:11px 18px;border-radius:14px;font-size:14px;z-index:60;
     max-width:90vw;box-shadow:0 8px 24px rgba(0,0,0,.25);
   }
   #toast.bad{background:#B91C1C}
+
+  /* ---------- public pages (privacy, terms, delete account, sample ad) ---------- */
+  .pub{display:block}
+  html.is-admin .pub{display:none}
+  html.is-privacy #loginView, html.is-privacy #appView, html.is-privacy .pub:not(#pub-privacy){display:none}
+  html.is-terms #loginView, html.is-terms #appView, html.is-terms .pub:not(#pub-terms){display:none}
+  html.is-delete #loginView, html.is-delete #appView, html.is-delete .pub:not(#pub-delete){display:none}
+  html.is-ad #loginView, html.is-ad #appView, html.is-ad .pub:not(#pub-ad){display:none}
+  .pub .pin{max-width:780px;margin:0 auto;padding:0 18px}
+  .pub .phead{background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;padding:26px 0}
+  .pub .phead h1{font-size:26px;margin:0 0 4px}
+  .pub .phead p{margin:0;opacity:.9;font-size:14px;color:#fff}
+  .pub h2{font-size:19px;margin:28px 0 8px;color:#4F46E5}
+  .pub h3{font-size:16px;margin:18px 0 6px}
+  .pub p,.pub li{font-size:15px;color:#334155;line-height:1.6}
+  .pub ul,.pub ol{padding-left:22px}
+  .pub .pcard{background:#fff;border:1px solid #E2E8F0;border-radius:16px;padding:6px 18px 18px;margin:18px 0 50px}
+  .pub table{min-width:0;background:#fff;margin:10px 0}
+  .pub th,.pub td{border:1px solid #E2E8F0;padding:9px 10px}
+  .pub th{background:#EEF2FF;color:#4F46E5;text-transform:none;font-size:14px;letter-spacing:0}
+  .pub a.pbtn{display:inline-block;background:linear-gradient(135deg,#4F46E5,#7C3AED);color:#fff;text-decoration:none;font-weight:700;padding:12px 18px;border-radius:12px}
+  .pub .adhero{height:180px;border-radius:16px;margin:16px 0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:28px;font-weight:800;background:linear-gradient(135deg,#4F46E5,#7C3AED)}
+  .pub .adtag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;color:#64748B;background:#E2E8F0;border-radius:8px;padding:3px 9px;margin:18px 0 0}
+  mark{background:#FEF3C7;color:#92400E;padding:0 4px;border-radius:4px}
+  .t-ok{color:#047857}
+  .t-bad{color:#B91C1C}
+  ol.steps{padding-left:20px;margin:8px 0 12px}
+  ol.steps li{margin:4px 0;font-size:14px;color:#334155}
 </style>
 </head>
 <body>
@@ -131,16 +175,72 @@
     <button class="sm" id="outBtn">Sign out</button>
   </header>
   <nav id="tabs">
-    <button data-tab="dashboard" class="on">Dashboard</button>
+    <button data-tab="wizard" class="on">Setup Wizard</button>
+    <button data-tab="dashboard">Dashboard</button>
+    <button data-tab="users">Users</button>
+    <button data-tab="trash">Trash &amp; Moderation</button>
     <button data-tab="cloud">Cloudinary</button>
     <button data-tab="tg">Telegram bots</button>
     <button data-tab="limits">Limits &amp; Ads</button>
-    <button data-tab="users">Users</button>
+    <button data-tab="app">App control</button>
   </nav>
 
   <main>
+    <!-- ===== Setup Wizard ===== -->
+    <section id="tab-wizard" class="tab">
+      <div class="card">
+        <h2>Setup Wizard</h2>
+        <p class="mu small">Do the 3 steps below. Each step tests the real service and tells you exactly what to fix. Press the health check any time to see what is missing.</p>
+        <div class="row"><button class="btn" id="hcRun">Run health check</button></div>
+        <div id="hcOut" class="small" style="margin-top:10px"></div>
+      </div>
+
+      <div class="card">
+        <h3>Step 1: Photos (Cloudinary)</h3>
+        <ol class="steps">
+          <li>Sign up free at cloudinary.com and open the console.</li>
+          <li>Copy your <b>Cloud name</b> (shown at the top of the dashboard).</li>
+          <li>Settings (gear icon) → <b>Upload</b> → <b>Upload presets</b> → <b>Add upload preset</b>. Name it <code>lockify_unsigned</code>, set <b>Signing mode</b> to <b>Unsigned</b>, Save.</li>
+          <li>Type them below and press the button. It uploads a tiny test picture to check everything.</li>
+        </ol>
+        <div class="grid">
+          <label>Cloud name<input id="wCloud" placeholder="my-cloud-name" autocapitalize="off" autocomplete="off"></label>
+          <label>Upload preset<input id="wPreset" value="lockify_unsigned" autocapitalize="off" autocomplete="off"></label>
+        </div>
+        <div class="row"><button class="btn" id="wCloudBtn">Test &amp; save</button></div>
+        <div id="wCloudOut" class="pgmsg"></div>
+      </div>
+
+      <div class="card">
+        <h3>Step 2: Files (Telegram bot)</h3>
+        <ol class="steps">
+          <li>In Telegram open <a href="https://t.me/BotFather" target="_blank" rel="noopener">@BotFather</a>, send <code>/newbot</code>, answer the questions and copy the <b>token</b>.</li>
+          <li>Create a <b>new channel</b> (menu → New channel). Make it <b>Public for now</b> and pick a username like <code>lockify_store_123</code>. You can make it private again after setup.</li>
+          <li>Open the channel → <b>Administrators</b> → <b>Add administrator</b> → search your bot → keep <b>Post messages</b> on.</li>
+          <li>Paste the token and the channel name (with @) below, then press the button. Not sure about the channel? Leave it empty and press <b>Find my channel</b>.</li>
+        </ol>
+        <div class="grid">
+          <label>Bot token<input id="wTgToken" placeholder="123456789:AAxxxxxxxx" autocapitalize="off" autocomplete="off"></label>
+          <label>Channel (@username, number, or a message link)<input id="wTgChat" placeholder="@lockify_store_123" autocapitalize="off" autocomplete="off"></label>
+        </div>
+        <div class="row">
+          <button class="btn ghost" id="wTgFind">Find my channel</button>
+          <button class="btn" id="wTgBtn">Test &amp; save</button>
+        </div>
+        <div id="wTgChats" class="row" style="margin-top:8px"></div>
+        <div id="wTgOut" class="pgmsg"></div>
+      </div>
+
+      <div class="card">
+        <h3>Step 3: Storage limits</h3>
+        <p class="mu small">Saves sensible defaults if none are set yet (200 MB free per user, 10 MB photos, 20 MB files). The app needs this to count storage.</p>
+        <div class="row"><button class="btn" id="wLimBtn">Save default limits</button></div>
+        <div id="wLimOut" class="pgmsg"></div>
+      </div>
+    </section>
+
     <!-- ===== Dashboard ===== -->
-    <section id="tab-dashboard" class="tab">
+    <section id="tab-dashboard" class="tab" hidden>
       <div class="stats">
         <div class="stat"><div class="n" id="stUsers">-</div><div class="l">Users</div></div>
         <div class="stat"><div class="n" id="stFiles">-</div><div class="l">Backed-up files</div></div>
@@ -148,11 +248,64 @@
         <div class="stat"><div class="n" id="stBanned">-</div><div class="l">Banned users</div></div>
       </div>
       <div class="card">
+        <h2>Top users by storage</h2>
+        <div id="topUsers" class="small mu">Load statistics to see this.</div>
+      </div>
+      <div class="card">
         <h2>Setup checklist</h2>
         <div id="checklist" class="small"></div>
       </div>
       <div class="row">
         <button class="btn" id="refreshStats">Refresh statistics</button>
+      </div>
+    </section>
+
+    <!-- ===== Users ===== -->
+    <section id="tab-users" class="tab" hidden>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin:0">Users</h2>
+          <div class="row">
+            <input id="uSearch" placeholder="Search name or email" style="margin:0;min-width:200px">
+            <button class="btn" id="uLoad">Load users</button>
+          </div>
+        </div>
+        <p class="mu small" id="uInfo" style="margin-top:10px">Press “Load users” to fetch the list.</p>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>User</th><th>Files</th><th>Storage</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="userRows"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="note"><b>Deleting a user's data</b> removes their vault, file records and counters, and queues their Cloudinary/Telegram files for cleanup. It does <b>not</b> delete the sign-in account itself: after that, delete the user in Firebase Console → Authentication → Users.</div>
+    </section>
+
+    <!-- ===== Trash & Moderation ===== -->
+    <section id="tab-trash" class="tab" hidden>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <h2 style="margin:0">Cleanup queue</h2>
+          <button class="btn" id="trLoad">Load queue</button>
+        </div>
+        <p class="mu small" id="trInfo" style="margin-top:10px">Deleted and rejected files wait here until you remove them from Cloudinary / Telegram.</p>
+      </div>
+      <div id="purgeBox"></div>
+
+      <div class="card">
+        <h2>Moderation (rejected images)</h2>
+        <div class="row" style="margin-bottom:10px">
+          <label style="margin:0">Ban users with at least
+            <input id="banN" type="number" min="1" value="3" style="width:90px;display:inline-block;margin:0 6px">
+            rejections</label>
+          <button class="btn red" id="banBulk">Ban them now</button>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr><th>User</th><th>Rejected</th><th>Last</th><th>Actions</th></tr></thead>
+            <tbody id="modRows"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -180,7 +333,7 @@
           <button class="btn" id="cSave">Add account</button>
           <button class="btn ghost" id="cCancel" hidden>Cancel</button>
         </div>
-        <div class="note">Cloud name and preset are not secret. Never put your Cloudinary <b>API secret</b> anywhere in this panel.</div>
+        <div class="note">Cloud name and preset are not secret. Never store your Cloudinary <b>API secret</b> in the database. The cleanup tab asks for it only when you press Purge and keeps it in this page's memory only.</div>
       </div>
     </section>
 
@@ -188,7 +341,7 @@
     <section id="tab-tg" class="tab" hidden>
       <div class="card">
         <h2>Telegram bots</h2>
-        <p class="mu small">Large files and documents go to a Telegram channel through these bots. Add several bots and the app uses the first one that is <b>enabled</b> and <b>not full</b>.</p>
+        <p class="mu small">Documents go to a Telegram channel through these bots (encrypted on the phone first). The app uses the first bot that is <b>enabled</b> and <b>not full</b>.</p>
         <div class="tablewrap">
           <table>
             <thead><tr><th>Order</th><th>Label</th><th>Token</th><th>Chat / Channel ID</th><th>Status</th><th>Actions</th></tr></thead>
@@ -210,7 +363,8 @@
         </div>
         <div class="note">
           <b>Security:</b> bot tokens are readable by every logged-in app user (the app needs them to upload).
-          Use a <b>private channel</b> only for storage, keep the bots limited to that channel, and rotate a token with @BotFather if you suspect a leak.
+          Files are encrypted before upload, so contents stay private, but a leaked token can be used to spam or delete messages in the channel.
+          Use a <b>private channel</b> only for storage and rotate a token with @BotFather if you suspect a leak.
         </div>
       </div>
     </section>
@@ -224,7 +378,7 @@
           <label>Max image size via Cloudinary (MB)<input id="fImg" type="number" min="1" max="10" step="1"></label>
           <label>Max file size via Telegram (MB)<input id="fTg" type="number" min="1" max="50" step="1"></label>
         </div>
-        <p class="mu small">Telegram bots can upload up to 50 MB but can only download up to 20 MB through the normal Bot API, so 20 MB is the safe value for files users must be able to restore.</p>
+        <p class="mu small">The app restores Telegram files only up to 20 MB (Bot API download limit), so values above 20 are capped to 20 in the app.</p>
       </div>
       <div class="card">
         <h2>Earn storage (watch a page)</h2>
@@ -237,29 +391,239 @@
           <label>Max claims per day<input id="aDay" type="number" min="1" max="100" step="1"></label>
         </div>
       </div>
-      <div class="row"><button class="btn" id="saveLimits">Save settings</button></div>
+      <div class="row"><button class="btn ghost" id="autoAd">Use this site's sample ad page</button><button class="btn" id="saveLimits">Save settings</button></div>
     </section>
 
-    <!-- ===== Users ===== -->
-    <section id="tab-users" class="tab" hidden>
+    <!-- ===== App control ===== -->
+    <section id="tab-app" class="tab" hidden>
       <div class="card">
-        <div class="row" style="justify-content:space-between">
-          <h2 style="margin:0">Users</h2>
-          <div class="row">
-            <input id="uSearch" placeholder="Search name or email" style="margin:0;min-width:200px">
-            <button class="btn" id="uLoad">Load users</button>
-          </div>
+        <h2>App control</h2>
+        <p class="mu small">These values are read by the app at start-up (no app update needed).</p>
+        <div class="grid">
+          <label class="chk"><input id="pMaint" type="checkbox"> Maintenance mode (blocks the app)</label>
+          <label>Maintenance message<input id="pMaintMsg" placeholder="We'll be back soon."></label>
+          <label>Minimum app version code<input id="pMinVer" type="number" min="0" step="1" placeholder="0"></label>
+          <label>Update link (https, e.g. Play Store)<input id="pUpdUrl" placeholder="https://play.google.com/store/apps/details?id=..." autocapitalize="off"></label>
         </div>
-        <p class="mu small" id="uInfo" style="margin-top:10px">Press “Load users” to fetch the list.</p>
-        <div class="tablewrap">
-          <table>
-            <thead><tr><th>User</th><th>Files</th><th>Storage</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="userRows"></tbody>
-          </table>
+        <p class="mu small">Version code is the number in Sketchware's project settings (Version code). Users below the minimum are asked to update.</p>
+      </div>
+      <div class="card">
+        <h2>Legal &amp; support links</h2>
+        <div class="grid">
+          <label>Privacy policy URL<input id="pPrivacy" placeholder="https://.../privacy.html" autocapitalize="off"></label>
+          <label>Terms of service URL<input id="pTerms" placeholder="https://.../terms.html" autocapitalize="off"></label>
+          <label>Account deletion page URL<input id="pDelUrl" placeholder="https://.../delete-account.html" autocapitalize="off"></label>
+          <label>Support email<input id="pSupport" type="email" placeholder="support@example.com" autocapitalize="off"></label>
         </div>
       </div>
+      <div class="row"><button class="btn ghost" id="autoLinks">Fill the 3 links from this site</button><button class="btn" id="saveApp">Save</button></div>
     </section>
   </main>
+</div>
+
+<!-- ======================= PUBLIC PAGES (opened with ?page=...) ======================= -->
+<div id="pubView">
+
+<section class="pub" id="pub-privacy">
+<div class="phead"><div class="pin"><h1>Lockify Privacy Policy</h1><p>Effective date: <mark>[EFFECTIVE DATE]</mark></p></div></div>
+<div class="pin"><div class="pcard">
+
+<h2>1. Who we are</h2>
+<p>Lockify (“the app”, “we”) is a password vault and file backup app operated by <mark>[YOUR NAME OR COMPANY]</mark>, <mark>[COUNTRY]</mark>. You can contact us at <mark>[SUPPORT EMAIL]</mark>.</p>
+
+<h2>2. Information we handle</h2>
+<h3>Account information</h3>
+<p>Your email address, display name and a unique account ID. If you sign in with Google, we receive your Google account email and name from Google. Sign-in is handled by Google Firebase Authentication.</p>
+<h3>Vault entries (passwords and notes)</h3>
+<p>Titles, usernames, passwords, website addresses, notes and custom fields that you save in the vault are <b>encrypted on your device</b> (AES-256-GCM, with a key derived from your master password) before they are sent to our database. We store only the encrypted data plus a random salt and an encrypted check value used to verify your master password. <b>Your master password is never sent to us and we cannot read your vault.</b> Because of this, we cannot recover your vault if you forget your master password.</p>
+<h3>Photos you back up</h3>
+<p>Photos are uploaded to Cloudinary. They are <b>not encrypted</b> on the server. Each photo is checked by an automated safety service (Amazon Rekognition, accessed through Cloudinary) to detect explicit content, and photos that fail the check are rejected. Photo links are long and hard to guess, but anyone who has a link can open the photo.</p>
+<h3>Files and documents you back up</h3>
+<p>Files (for example PDFs) are <b>encrypted on your device</b> with your vault key and then stored as encrypted files in a private Telegram channel through the Telegram Bot API. Telegram and we cannot read their contents. Because they are encrypted, we cannot scan them.</p>
+<h3>Backup details and usage</h3>
+<p>File names, sizes, types and upload times; how much storage you use; storage you earned or were granted; and, if a photo is rejected, a record of the rejection (used to prevent abuse). We also keep account status information such as whether an account has been suspended.</p>
+<h3>“Earn storage” feature</h3>
+<p>When you choose to earn extra storage, the app opens a web page chosen by us inside the app. The operator of that page may receive standard technical information such as your IP address and may use cookies according to its own policy.</p>
+<h3>Technical information</h3>
+<p>Our service providers receive technical information needed to deliver the service, such as IP address and device or connection information, when the app connects to them.</p>
+<h3>What we do not collect</h3>
+<ul>
+  <li>Your master password.</li>
+  <li>The readable contents of your vault entries or encrypted files.</li>
+  <li>Advertising identifiers. The app does not include advertising or analytics SDKs.</li>
+</ul>
+
+<h2>3. How we use information</h2>
+<ul>
+  <li>To create your account, sign you in and keep the service working.</li>
+  <li>To store and return your encrypted vault, photos and files.</li>
+  <li>To apply storage limits and rewards.</li>
+  <li>To keep the service safe: detecting prohibited content, preventing abuse and enforcing our Terms (which may lead to suspension).</li>
+  <li>To respond to your support requests and to comply with the law.</li>
+</ul>
+
+<h2>4. Service providers</h2>
+<div class="tablewrap"><table>
+<tr><th>Provider</th><th>Purpose</th><th>Data involved</th></tr>
+<tr><td>Google (Firebase Authentication, Realtime Database, Google Sign-In)</td><td>Accounts, sign-in and database</td><td>Account data, encrypted vault, backup records, usage data</td></tr>
+<tr><td>Cloudinary (with Amazon Rekognition moderation)</td><td>Photo storage and automatic safety check</td><td>Photos you upload</td></tr>
+<tr><td>Telegram</td><td>Storage of encrypted files</td><td>Encrypted files (unreadable to Telegram)</td></tr>
+<tr><td>Web hosting for our pages <mark>[e.g. GitHub Pages]</mark></td><td>Policy pages and the “earn storage” page</td><td>Standard web request data</td></tr>
+</table></div>
+<p>These providers process data for us under their own terms and privacy policies. We do not sell your personal information.</p>
+
+<h2>5. Sharing</h2>
+<p>We share information only with the service providers above, when the law requires it, or when needed to protect people or the service (for example, reporting unlawful content to the authorities).</p>
+
+<h2>6. Retention and deletion</h2>
+<ul>
+  <li>We keep your data while your account is active.</li>
+  <li><b>You can delete your account and data at any time</b> in the app: Settings → Delete account. You can also request deletion on our web page: <mark>[DELETE ACCOUNT PAGE URL]</mark>.</li>
+  <li>When you delete your account, your vault, backup records and sign-in account are removed. Stored photos and files are queued for removal from Cloudinary and Telegram, which we aim to complete within <mark>[30]</mark> days.</li>
+  <li>We may keep a small amount of non-content technical records (for example storage counters and abuse-prevention records) for up to <mark>[12]</mark> months, and anything we are required by law to keep.</li>
+  <li>Provider backups may take additional time to expire.</li>
+</ul>
+
+<h2>7. Security</h2>
+<p>We use encryption on your device for vault entries and files, encrypted connections (HTTPS) for all transfers, and access rules on our database. No system is perfectly secure. Choose a strong, unique master password and do not share it.</p>
+
+<h2>8. Your choices and rights</h2>
+<p>Depending on where you live, you may have the right to access, correct, delete or export your personal information, and to object to or restrict certain processing. You can view and change your vault and backups in the app. To exercise any right, contact <mark>[SUPPORT EMAIL]</mark>. We may need to verify your identity first.</p>
+
+<h2>9. Children</h2>
+<p>Lockify is for people aged 18 and over. We do not knowingly collect information from children. If you believe a child has provided information, contact us and we will delete it.</p>
+
+<h2>10. International transfers</h2>
+<p>Our service providers may process data in countries other than yours, including countries with different data protection laws.</p>
+
+<h2>11. Changes to this policy</h2>
+<p>We may update this policy. We will change the effective date above and, for important changes, tell you in the app.</p>
+
+<h2>12. Contact</h2>
+<p><mark>[YOUR NAME OR COMPANY]</mark><br>Email: <mark>[SUPPORT EMAIL]</mark></p>
+</div></div>
+</section>
+
+<section class="pub" id="pub-terms">
+<div class="phead"><div class="pin"><h1>Lockify Terms of Service</h1><p>Effective date: <mark>[EFFECTIVE DATE]</mark></p></div></div>
+<div class="pin"><div class="pcard">
+
+<h2>1. Agreement</h2>
+<p>These Terms govern your use of Lockify, a password vault and file backup app operated by <mark>[YOUR NAME OR COMPANY]</mark> (“we”). By creating an account or using the app you agree to these Terms and to our Privacy Policy. If you do not agree, do not use the app.</p>
+
+<h2>2. Eligibility</h2>
+<p>You must be at least 18 years old and able to enter a binding agreement in your country.</p>
+
+<h2>3. Your account and master password</h2>
+<ul>
+  <li>You are responsible for your account, your device and your app PIN.</li>
+  <li>Your vault and encrypted files are protected by a master password that only you know. <b>We cannot reset it or recover your data if you forget it.</b></li>
+  <li>Keep your own copies of anything important. Lockify is a convenience service, not a guarantee against data loss.</li>
+</ul>
+
+<h2>4. Your content</h2>
+<p>You keep ownership of what you store. You give us only the permission needed to store, process, transmit and delete it in order to run the service, including automated safety checks on photos.</p>
+
+<h2>5. Acceptable use</h2>
+<p>You must not use Lockify to store, upload or share:</p>
+<ul>
+  <li>sexually explicit content or any content involving the sexual exploitation of children. We have zero tolerance for this and will report it to the authorities;</li>
+  <li>content that is illegal, violent, hateful, harassing or that infringes other people's rights;</li>
+  <li>malware or anything designed to harm devices or services;</li>
+  <li>other people's passwords, accounts or personal data that you are not entitled to hold.</li>
+</ul>
+<p>You must also not: attempt to bypass storage limits, rewards or safety checks; interfere with or overload the service or its providers; misuse any access details found in the app; or reverse engineer the app to do any of these things.</p>
+
+<h2>6. Automated checks and enforcement</h2>
+<p>Photos are checked automatically and may be rejected. Encrypted files cannot be inspected, so you remain responsible for what you store. We may remove content, limit features, suspend or terminate accounts, and report unlawful activity, with or without notice where needed to protect people or the service. Repeated rejected uploads may lead to suspension.</p>
+
+<h2>7. Storage, limits and rewards</h2>
+<ul>
+  <li>Each account has a storage limit. We may change limits, file-size rules and features at any time.</li>
+  <li>You may be able to earn extra storage by viewing a page inside the app. Rewards have time and daily limits and may be changed or removed. Rewards have no cash value.</li>
+  <li>Attempts to abuse rewards (for example by automation or tampering) can result in removal of rewards or suspension.</li>
+</ul>
+
+<h2>8. Third-party services</h2>
+<p>Lockify relies on third-party services (such as Google Firebase, Cloudinary and Telegram). They may be unavailable or change, which can affect the app. Their own terms apply to their services.</p>
+
+<h2>9. Availability and changes</h2>
+<p>We aim to keep Lockify available but do not promise uninterrupted service. We may update or discontinue the app or parts of it. We may require you to update the app to continue using it.</p>
+
+<h2>10. Termination</h2>
+<p>You can stop using Lockify and delete your account at any time (Settings → Delete account). We may suspend or end your access if you break these Terms or if we must do so by law. Deleting your account removes your data as described in the Privacy Policy.</p>
+
+<h2>11. Disclaimers and liability</h2>
+<p>To the fullest extent permitted by law, Lockify is provided “as is” without warranties of any kind, and we are not liable for indirect or consequential losses, loss of data, or loss of access caused by forgotten master passwords, device loss, third-party service failures or your breach of these Terms. Nothing in these Terms limits liability that cannot be limited by law. <mark>[Have a lawyer review this section for your country.]</mark></p>
+
+<h2>12. Changes to these Terms</h2>
+<p>We may update these Terms. If you keep using the app after the effective date of an update, you accept it. For important changes we will tell you in the app.</p>
+
+<h2>13. Governing law and contact</h2>
+<p>These Terms are governed by the laws of <mark>[COUNTRY / REGION]</mark>. Contact us at <mark>[SUPPORT EMAIL]</mark>.</p>
+</div></div>
+</section>
+
+<section class="pub" id="pub-delete">
+<div class="phead"><div class="pin"><h1>Delete your Lockify account</h1><p>How to delete your account and data</p></div></div>
+<div class="pin">
+<div class="pcard">
+<h2>Option 1: Delete it yourself in the app (fastest)</h2>
+<ol>
+  <li>Open Lockify and unlock the app with your PIN.</li>
+  <li>Open the <b>Settings</b> tab.</li>
+  <li>Tap <b>Delete account</b>.</li>
+  <li>Enter your password if asked, then confirm <b>Delete forever</b>.</li>
+</ol>
+<p>Your account is deleted straight away. If you signed in with Google and the app asks you to sign in again first, sign in and repeat the steps.</p>
+</div>
+<div class="pcard" style="margin-top:0">
+<h2>Option 2: Ask us to delete it</h2>
+<p>If you can no longer open the app, email <mark>[SUPPORT EMAIL]</mark> from the email address of your Lockify account with the subject <b>“Delete my Lockify account”</b>. We may ask you to confirm that you own the account. We will process the request within <mark>[30]</mark> days.</p>
+<p><a class="pbtn" href="mailto:[SUPPORT EMAIL]?subject=Delete%20my%20Lockify%20account">Email a deletion request</a></p>
+</div>
+<div class="pcard" style="margin-top:0">
+<h2>What is deleted</h2>
+<ul>
+  <li>Your sign-in account (email, name and account ID).</li>
+  <li>Your encrypted vault (all passwords, notes and custom fields).</li>
+  <li>Your backup records, and the photos and encrypted files you stored. They are queued for removal from our storage providers (Cloudinary and Telegram), which we aim to complete within <mark>[30]</mark> days.</li>
+</ul>
+<h2>What may be kept</h2>
+<ul>
+  <li>A small amount of non-content technical records, such as storage counters and abuse-prevention records, for up to <mark>[12]</mark> months.</li>
+  <li>Anything we are required by law to keep.</li>
+  <li>Provider backups can take a short additional time to expire.</li>
+</ul>
+<p><b>Deletion cannot be undone.</b> We cannot recover your vault afterwards. Make sure you have copied anything you still need.</p>
+<p>See also our <a href="?page=privacy">Privacy Policy</a> and <a href="?page=terms">Terms of Service</a>.</p>
+</div>
+</div>
+</section>
+
+<section class="pub" id="pub-ad">
+<div class="pin">
+  <span class="adtag">SPONSORED</span>
+  <div class="pcard" style="margin-top:12px">
+    <div class="adhero">Your ad here</div>
+    <h2 style="margin-top:6px">Replace this page with your sponsor</h2>
+    <p>This is a sample page for testing Lockify's “Earn storage” feature. Put your own sponsor, affiliate or promotion content here, or point the Earn Storage link in the panel to any page you control.</p>
+    <p>Keep the page light so it loads fast on mobile data.</p>
+    <p><a class="pbtn" href="https://example.com">Learn more</a></p>
+  </div>
+</div>
+</section>
+
+</div>
+
+<div id="modal" class="modal" hidden>
+  <div class="modal-card">
+    <div class="row" style="justify-content:space-between;margin-bottom:8px">
+      <h3 id="mTitle" style="margin:0">Files</h3>
+      <button class="sm" id="mClose">Close</button>
+    </div>
+    <div id="mBody"></div>
+  </div>
 </div>
 
 <div id="toast" hidden></div>
@@ -267,6 +631,7 @@
 <script>
 (function () {
   "use strict";
+  if (window.__PUB) return;
 
   /* ============================================================
      1) Paste your two values here (Firebase Project settings)
@@ -294,7 +659,7 @@
     t.className = bad ? "bad" : "";
     t.hidden = false;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { t.hidden = true; }, 4200);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 4600);
   }
   function fmtBytes(b) {
     b = Number(b) || 0;
@@ -302,6 +667,10 @@
     var kb = b / 1024; if (kb < 1024) return kb.toFixed(0) + " KB";
     var mb = kb / 1024; if (mb < 1024) return mb.toFixed(1) + " MB";
     return (mb / 1024).toFixed(2) + " GB";
+  }
+  function fmtDate(ts) {
+    if (!ts) return "-";
+    try { return new Date(Number(ts)).toLocaleString(); } catch (e) { return "-"; }
   }
   function num(v, d) { var n = Number(v); return isFinite(n) ? n : d; }
   function configured() {
@@ -311,6 +680,12 @@
     if (!btn) return;
     if (on) { btn.dataset.t = btn.textContent; btn.textContent = text || "Please wait..."; btn.disabled = true; }
     else { btn.textContent = btn.dataset.t || btn.textContent; btn.disabled = false; }
+  }
+  function isHttps(u) { return /^https:\/\/.{4,}/.test(u); }
+  async function sha1Hex(str) {
+    if (!window.crypto || !window.crypto.subtle) throw new Error("This browser cannot create signatures (open the panel over https).");
+    var buf = await window.crypto.subtle.digest("SHA-1", new TextEncoder().encode(str));
+    return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ("0" + b.toString(16)).slice(-2); }).join("");
   }
 
   /* ============================================================
@@ -377,9 +752,11 @@
   /* ============================================================
      state
      ============================================================ */
-  var cfg = {};          // /config
-  var users = [];        // loaded users
-  var editCloud = null;  // id being edited
+  var cfg = {};
+  var users = [];
+  var nameOf = {};          // uid -> label
+  var trashItems = [];
+  var editCloud = null;
   var editTg = null;
 
   function listFrom(node) {
@@ -406,7 +783,7 @@
 
   async function loadConfig() {
     cfg = (await db("GET", "config")) || {};
-    renderCloud(); renderTg(); renderLimits(); renderChecklist();
+    renderCloud(); renderTg(); renderLimits(); renderApp(); renderChecklist();
   }
 
   /* ============================================================
@@ -630,7 +1007,7 @@
     var sec = num($("#aSec").value, -1), mb = num($("#aMb").value, -1), cool = num($("#aCool").value, -1), day = num($("#aDay").value, -1);
     var url = $("#aUrl").value.trim();
     if (free < 0 || img < 1 || img > 10 || tg < 1 || tg > 50) return toast("Check the storage limit values (image max 10 MB, Telegram max 50 MB).", true);
-    if ($("#aOn").checked && !/^https:\/\/.{4,}/.test(url)) return toast("The ad URL must start with https://", true);
+    if ($("#aOn").checked && !isHttps(url)) return toast("The ad URL must start with https://", true);
     if (sec < 5 || sec > 300 || mb < 1 || cool < 0 || day < 1) return toast("Check the earn-storage values.", true);
     var btn = $("#saveLimits");
     busy(btn, true);
@@ -644,6 +1021,40 @@
       });
       await loadConfig();
       toast("Settings saved");
+    } catch (err) { toast(err.message, true); }
+    busy(btn, false);
+  });
+
+  /* ============================================================
+     App control tab
+     ============================================================ */
+  function renderApp() {
+    var a = cfg.app || {};
+    $("#pMaint").checked = a.maintenance === true;
+    $("#pMaintMsg").value = a.maintenanceMsg || "";
+    $("#pMinVer").value = num(a.minVersion, 0);
+    $("#pUpdUrl").value = a.updateUrl || "";
+    $("#pPrivacy").value = a.privacyUrl || "";
+    $("#pTerms").value = a.termsUrl || "";
+    $("#pDelUrl").value = a.deleteUrl || "";
+    $("#pSupport").value = a.supportEmail || "";
+  }
+
+  $("#saveApp").addEventListener("click", async function () {
+    var upd = $("#pUpdUrl").value.trim(), pr = $("#pPrivacy").value.trim(), te = $("#pTerms").value.trim(),
+        de = $("#pDelUrl").value.trim(), em = $("#pSupport").value.trim();
+    var mv = Math.max(0, Math.round(num($("#pMinVer").value, 0)));
+    if ((upd && !isHttps(upd)) || (pr && !isHttps(pr)) || (te && !isHttps(te)) || (de && !isHttps(de))) return toast("Links must start with https://", true);
+    if (em && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)) return toast("The support email looks invalid.", true);
+    var btn = $("#saveApp");
+    busy(btn, true);
+    try {
+      await db("PUT", "config/app", {
+        maintenance: $("#pMaint").checked, maintenanceMsg: $("#pMaintMsg").value.trim(),
+        minVersion: mv, updateUrl: upd, privacyUrl: pr, termsUrl: te, deleteUrl: de, supportEmail: em
+      });
+      await loadConfig();
+      toast("Saved");
     } catch (err) { toast(err.message, true); }
     busy(btn, false);
   });
@@ -663,6 +1074,7 @@
       var idx = (await db("GET", "userIndex")) || {};
       var uids = Object.keys(idx);
       users = [];
+      nameOf = {};
       $("#uInfo").textContent = uids.length ? ("Loading " + uids.length + " users...") : "No users yet. Users appear here after they open the app.";
       var i = 0;
       async function worker() {
@@ -670,6 +1082,7 @@
           var uid = uids[i++];
           var u = { uid: uid, name: idx[uid].name || "", email: idx[uid].email || "", lastSeen: idx[uid].lastSeen || 0,
                     used: 0, bonus: 0, extra: 0, banned: false, files: 0 };
+          nameOf[uid] = (u.name || "") + (u.email ? " <" + u.email + ">" : "");
           var res = await Promise.all([
             db("GET", "users/" + uid + "/usage/usedBytes").catch(function () { return 0; }),
             db("GET", "users/" + uid + "/earn/bonusBytes").catch(function () { return 0; }),
@@ -701,19 +1114,97 @@
         "<td>" + esc(u.files) + "</td>" +
         "<td>" + esc(fmtBytes(u.used)) + " / " + esc(fmtBytes(userLimit(u))) + "</td>" +
         "<td>" + (u.banned ? '<span class="badge b-er">Banned</span>' : '<span class="badge b-ok">OK</span>') + "</td>" +
-        '<td><button class="sm ' + (u.banned ? "ok" : "danger") + '" data-act="ban" data-uid="' + esc(u.uid) + '">' + (u.banned ? "Unban" : "Ban") + "</button>" +
-        '<button class="sm" data-act="extra" data-uid="' + esc(u.uid) + '">Set extra MB</button></td></tr>';
+        '<td><button class="sm" data-act="files" data-uid="' + esc(u.uid) + '">Files</button>' +
+        '<button class="sm ' + (u.banned ? "ok" : "danger") + '" data-act="ban" data-uid="' + esc(u.uid) + '">' + (u.banned ? "Unban" : "Ban") + "</button>" +
+        '<button class="sm" data-act="extra" data-uid="' + esc(u.uid) + '">Set extra MB</button>' +
+        '<button class="sm danger" data-act="wipe" data-uid="' + esc(u.uid) + '">Delete data</button></td></tr>';
     }).join("") : '<tr><td colspan="5" class="mu">Nothing to show.</td></tr>';
   }
 
   $("#uSearch").addEventListener("input", renderUsers);
   $("#uLoad").addEventListener("click", loadUsers);
 
+  function queueEntry(uid, f, by) {
+    var isTg = f.type === "file" || f.storage === "tg";
+    return {
+      uid: uid, storage: isTg ? "tg" : "cloud", cloud: f.cloud || "", publicId: f.publicId || "",
+      tgBot: f.tgBot || "", tgChat: f.tgChat || "", tgMsgId: num(f.tgMsgId, 0),
+      size: num(f.size, 0), kind: f.kind || "deleted", ts: Date.now(), by: by || "admin"
+    };
+  }
+
+  async function adminRemoveFile(uid, fid, f) {
+    await db("POST", "purgeQueue", queueEntry(uid, f, "admin"));
+    await db("DELETE", "users/" + uid + "/files/" + fid);
+    var used = num(await db("GET", "users/" + uid + "/usage/usedBytes").catch(function () { return 0; }), 0);
+    await db("PUT", "users/" + uid + "/usage/usedBytes", Math.max(0, used - num(f.size, 0)));
+  }
+
+  async function openFiles(uid) {
+    var u = users.filter(function (x) { return x.uid === uid; })[0];
+    $("#mTitle").textContent = "Files: " + ((u && (u.email || u.name)) || uid);
+    $("#mBody").innerHTML = '<p class="mu">Loading...</p>';
+    $("#modal").hidden = false;
+    try {
+      var files = (await db("GET", "users/" + uid + "/files")) || {};
+      var ids = Object.keys(files).sort(function (a, b) { return num(files[b].ts, 0) - num(files[a].ts, 0); });
+      if (!ids.length) { $("#mBody").innerHTML = '<p class="mu">No files.</p>'; return; }
+      $("#mBody").innerHTML = '<div class="tablewrap"><table><thead><tr><th></th><th>Name</th><th>Type</th><th>Size</th><th>Date</th><th></th></tr></thead><tbody>' +
+        ids.map(function (id) {
+          var f = files[id];
+          var isImg = f.type !== "file" && f.url;
+          var thumb = isImg ? '<a href="' + esc(f.url) + '" target="_blank" rel="noopener"><img class="thumb" loading="lazy" src="' + esc(String(f.url).replace("/upload/", "/upload/c_fill,w_120,h_120,q_auto/")) + '" alt=""></a>' : '<div class="thumb"></div>';
+          return "<tr><td>" + thumb + "</td><td>" + esc(f.name || "-") + "</td><td>" + (f.type === "file" ? "File (Telegram)" : "Image") +
+            "</td><td>" + esc(fmtBytes(f.size)) + "</td><td>" + esc(fmtDate(f.ts)) + "</td>" +
+            '<td><button class="sm danger" data-act="rmfile" data-uid="' + esc(uid) + '" data-fid="' + esc(id) + '">Remove</button></td></tr>';
+        }).join("") + "</tbody></table></div>" +
+        '<p class="mu small">Removing a file deletes its record and queues the stored copy for cleanup (see Trash &amp; Moderation).</p>';
+      $("#mBody").dataset.files = JSON.stringify(files);
+    } catch (err) { $("#mBody").innerHTML = '<p class="err">' + esc(err.message) + "</p>"; }
+  }
+
+  $("#mClose").addEventListener("click", function () { $("#modal").hidden = true; });
+  $("#modal").addEventListener("click", function (e) { if (e.target === $("#modal")) $("#modal").hidden = true; });
+  $("#mBody").addEventListener("click", async function (e) {
+    var b = e.target.closest("button[data-act='rmfile']"); if (!b) return;
+    if (!confirm("Remove this file?")) return;
+    try {
+      var files = JSON.parse($("#mBody").dataset.files || "{}");
+      var f = files[b.dataset.fid];
+      if (!f) return;
+      await adminRemoveFile(b.dataset.uid, b.dataset.fid, f);
+      toast("Removed");
+      await openFiles(b.dataset.uid);
+      loadUsers();
+    } catch (err) { toast(err.message, true); }
+  });
+
+  async function adminWipeUser(uid) {
+    var res = await Promise.all([
+      db("GET", "users/" + uid + "/files").catch(function () { return null; }),
+      db("GET", "users/" + uid + "/trash").catch(function () { return null; }),
+      db("GET", "users/" + uid + "/modLog").catch(function () { return null; })
+    ]);
+    var files = res[0] || {}, trash = res[1] || {}, mod = res[2] || {};
+    var queue = [];
+    Object.keys(files).forEach(function (k) { queue.push(queueEntry(uid, files[k], "admin-delete")); });
+    Object.keys(trash).forEach(function (k) { queue.push(queueEntry(uid, trash[k], "admin-delete")); });
+    Object.keys(mod).forEach(function (k) {
+      if (mod[k].purged !== true) { var e = queueEntry(uid, mod[k], "admin-delete"); e.kind = "rejected"; queue.push(e); }
+    });
+    for (var i = 0; i < queue.length; i++) await db("POST", "purgeQueue", queue[i]);
+    var paths = ["files", "trash", "modLog", "vault", "usage", "earn", "quota", "status"];
+    for (var j = 0; j < paths.length; j++) await db("DELETE", "users/" + uid + "/" + paths[j]);
+    await db("DELETE", "userIndex/" + uid);
+    return queue.length;
+  }
+
   $("#userRows").addEventListener("click", async function (e) {
     var b = e.target.closest("button[data-act]"); if (!b) return;
     var u = users.filter(function (x) { return x.uid === b.dataset.uid; })[0];
     if (!u) return;
     try {
+      if (b.dataset.act === "files") { await openFiles(u.uid); return; }
       if (b.dataset.act === "ban") {
         var nb = !u.banned;
         if (!confirm((nb ? "Ban " : "Unban ") + (u.email || u.uid) + "?")) return;
@@ -726,6 +1217,15 @@
         if (mb < 0 || v.trim() === "") return toast("Enter a number.", true);
         await db("PUT", "users/" + u.uid + "/quota/extraBytes", Math.round(mb * 1048576));
         u.extra = Math.round(mb * 1048576);
+      } else if (b.dataset.act === "wipe") {
+        if (!confirm("Delete ALL data of " + (u.email || u.uid) + "? This cannot be undone.")) return;
+        if (prompt("Type DELETE to confirm:") !== "DELETE") return toast("Cancelled.", true);
+        busy(b, true, "Deleting...");
+        var n = 0;
+        try { n = await adminWipeUser(u.uid); } finally { busy(b, false); }
+        toast("Data deleted. " + n + " stored files queued for cleanup. Now delete the account in Firebase Console → Authentication.");
+        await loadUsers();
+        return;
       }
       renderUsers(); renderStats();
       toast("Saved");
@@ -743,6 +1243,16 @@
     $("#stFiles").textContent = files;
     $("#stUsed").textContent = fmtBytes(used);
     $("#stBanned").textContent = banned;
+
+    var top = users.slice().sort(function (a, b) { return b.used - a.used; }).slice(0, 8);
+    var max = top.length ? Math.max(1, top[0].used) : 1;
+    $("#topUsers").innerHTML = top.length && top[0].used > 0 ? top.map(function (u) {
+      var w = Math.max(2, Math.round(u.used / max * 100));
+      return '<div style="display:flex;align-items:center;gap:10px;margin:8px 0">' +
+        '<div style="flex:0 0 38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + esc(u.email || u.name || u.uid) + "</div>" +
+        '<div class="bar" style="flex:1"><i style="width:' + w + '%"></i></div>' +
+        '<div style="flex:0 0 78px;text-align:right">' + esc(fmtBytes(u.used)) + "</div></div>";
+    }).join("") : "No storage used yet.";
   }
 
   function renderChecklist() {
@@ -750,6 +1260,7 @@
     var tg = listFrom(cfg.telegram && cfg.telegram.bots).filter(function (x) { return statusOf(x) === "active"; }).length;
     var lim = cfg.limits && cfg.limits.freeBytes;
     var ads = cfg.ads && cfg.ads.enabled === true;
+    var app = cfg.app || {};
     function item(ok, text) {
       return '<div style="padding:6px 0"><span class="badge ' + (ok ? "b-ok" : "b-wa") + '">' + (ok ? "Done" : "To do") + "</span> " + text + "</div>";
     }
@@ -757,10 +1268,480 @@
       item(cl > 0, "Cloudinary accounts ready: <b>" + cl + "</b>") +
       item(tg > 0, "Telegram bots ready: <b>" + tg + "</b>") +
       item(!!lim, "Storage limits saved") +
-      item(ads, "Earn-storage page enabled");
+      item(ads, "Earn-storage page enabled") +
+      item(!!(app.privacyUrl && app.termsUrl), "Privacy policy and terms links saved") +
+      item(!!app.deleteUrl, "Account deletion page link saved");
   }
 
   $("#refreshStats").addEventListener("click", loadUsers);
+
+  /* ============================================================
+     Trash & Moderation
+     ============================================================ */
+  function normItem(o) {
+    return {
+      storage: o.storage === "tg" ? "tg" : "cloud", cloud: o.cloud || "", publicId: o.publicId || "",
+      tgBot: o.tgBot || "", tgChat: o.tgChat || "", tgMsgId: num(o.tgMsgId, 0),
+      size: num(o.size, 0), ts: num(o.ts, 0), kind: o.kind || "deleted", purged: o.purged === true
+    };
+  }
+
+  async function loadTrash() {
+    var btn = $("#trLoad");
+    busy(btn, true, "Loading...");
+    try {
+      var idx = (await db("GET", "userIndex")) || {};
+      var uids = Object.keys(idx);
+      uids.forEach(function (uid) { nameOf[uid] = (idx[uid].name || "") + (idx[uid].email ? " <" + idx[uid].email + ">" : ""); });
+      var items = [];
+
+      var q = (await db("GET", "purgeQueue")) || {};
+      Object.keys(q).forEach(function (k) {
+        var it = normItem(q[k]); it.src = "queue"; it.path = "purgeQueue/" + k; it.uid = q[k].uid || "";
+        items.push(it);
+      });
+
+      var i = 0;
+      async function worker() {
+        while (i < uids.length) {
+          var uid = uids[i++];
+          var res = await Promise.all([
+            db("GET", "users/" + uid + "/trash").catch(function () { return null; }),
+            db("GET", "users/" + uid + "/modLog").catch(function () { return null; })
+          ]);
+          var tr = res[0] || {}, ml = res[1] || {};
+          Object.keys(tr).forEach(function (k) {
+            var it = normItem(tr[k]); it.src = "trash"; it.path = "users/" + uid + "/trash/" + k; it.uid = uid; items.push(it);
+          });
+          Object.keys(ml).forEach(function (k) {
+            var it = normItem(ml[k]); it.src = "mod"; it.path = "users/" + uid + "/modLog/" + k; it.uid = uid; it.kind = "rejected"; items.push(it);
+          });
+        }
+      }
+      var ws = [];
+      for (var w = 0; w < Math.min(5, uids.length); w++) ws.push(worker());
+      await Promise.all(ws);
+
+      trashItems = items;
+      renderTrash();
+      $("#trInfo").textContent = "Loaded " + items.length + " entries.";
+    } catch (err) { toast(err.message, true); $("#trInfo").textContent = "Could not load the queue."; }
+    busy(btn, false);
+  }
+
+  function groupBy(arr, keyFn) {
+    var m = {};
+    arr.forEach(function (x) { var k = keyFn(x); (m[k] = m[k] || []).push(x); });
+    return m;
+  }
+
+  function renderTrash() {
+    var cloudItems = trashItems.filter(function (i) { return i.storage === "cloud" && i.publicId && !i.purged; });
+    var tgItems = trashItems.filter(function (i) { return i.storage === "tg" && i.tgMsgId; });
+    var html = "";
+
+    var byCloud = groupBy(cloudItems, function (i) { return i.cloud || "(unknown)"; });
+    Object.keys(byCloud).forEach(function (cloud) {
+      var arr = byCloud[cloud];
+      var bytes = arr.reduce(function (s, x) { return s + x.size; }, 0);
+      html += '<div class="card pg" data-cloud="' + esc(cloud) + '"><h3>Cloudinary: ' + esc(cloud) + " <span class='mu small'>(" + arr.length + " files, " + esc(fmtBytes(bytes)) + ")</span></h3>" +
+        '<div class="grid"><label>API key<input class="ak" autocomplete="off" placeholder="Cloudinary API key"></label>' +
+        '<label>API secret (kept in memory only)<input class="as" type="password" autocomplete="off" placeholder="Cloudinary API secret"></label></div>' +
+        '<div class="row"><button class="btn red" data-act="purge" data-cloud="' + esc(cloud) + '">Purge from Cloudinary</button>' +
+        '<button class="btn ghost" data-act="copyids" data-cloud="' + esc(cloud) + '">Copy list of IDs</button>' +
+        '<button class="btn ghost" data-act="manual" data-cloud="' + esc(cloud) + '">I deleted them manually</button></div>' +
+        '<div class="pgmsg mu"></div></div>';
+    });
+
+    var byBot = groupBy(tgItems, function (i) { return i.tgBot || "(unknown)"; });
+    Object.keys(byBot).forEach(function (bot) {
+      var arr = byBot[bot];
+      var label = (((cfg.telegram || {}).bots || {})[bot] || {}).label || bot;
+      html += '<div class="card pg" data-bot="' + esc(bot) + '"><h3>Telegram: ' + esc(label) + " <span class='mu small'>(" + arr.length + " messages)</span></h3>" +
+        '<p class="mu small">Tries to delete each message with the bot, then clears the entry. Telegram may refuse old messages; that is fine.</p>' +
+        '<div class="row"><button class="btn red" data-act="tgpurge" data-bot="' + esc(bot) + '">Delete messages and clear</button>' +
+        '<button class="btn ghost" data-act="tgclear" data-bot="' + esc(bot) + '">Just clear the list</button></div>' +
+        '<div class="pgmsg mu"></div></div>';
+    });
+
+    if (!html) html = '<div class="card"><p class="mu" style="margin:0">Nothing waiting for cleanup.</p></div>';
+    $("#purgeBox").innerHTML = html;
+    renderModeration();
+  }
+
+  async function markDone(it) {
+    if (it.src === "mod") await db("PATCH", it.path, { purged: true });
+    else await db("DELETE", it.path);
+    it.purged = true;
+  }
+
+  async function purgeOne(cloud, apiKey, secret, publicId) {
+    var ts = Math.floor(Date.now() / 1000);
+    var sig = await sha1Hex("invalidate=true&public_id=" + publicId + "&timestamp=" + ts + secret);
+    var body = new URLSearchParams();
+    body.set("public_id", publicId); body.set("timestamp", String(ts));
+    body.set("api_key", apiKey); body.set("signature", sig); body.set("invalidate", "true");
+    var r;
+    try {
+      r = await fetch("https://api.cloudinary.com/v1_1/" + encodeURIComponent(cloud) + "/image/destroy", { method: "POST", body: body });
+    } catch (e) { var be = new Error("BLOCKED"); be.blocked = true; throw be; }
+    var j = {};
+    try { j = await r.json(); } catch (e2) { j = {}; }
+    return { status: r.status, json: j };
+  }
+
+  $("#purgeBox").addEventListener("click", async function (e) {
+    var b = e.target.closest("button[data-act]"); if (!b) return;
+    var card = b.closest(".pg"); var msg = card.querySelector(".pgmsg");
+    var act = b.dataset.act;
+    try {
+      if (act === "purge" || act === "copyids" || act === "manual") {
+        var cloud = b.dataset.cloud;
+        var items = trashItems.filter(function (i) { return i.storage === "cloud" && i.publicId && !i.purged && (i.cloud || "(unknown)") === cloud; });
+        if (act === "copyids") {
+          var text = items.map(function (i) { return i.publicId; }).join("\n");
+          try { await navigator.clipboard.writeText(text); msg.textContent = "Copied " + items.length + " IDs."; }
+          catch (er) { msg.innerHTML = "Copy failed. Select this text:<br><textarea readonly>" + esc(text) + "</textarea>"; }
+          return;
+        }
+        if (act === "manual") {
+          if (!confirm("Only press OK if you already deleted these in Cloudinary. Clear " + items.length + " entries?")) return;
+          for (var m = 0; m < items.length; m++) await markDone(items[m]);
+          toast("Cleared"); renderTrash(); return;
+        }
+        var key = card.querySelector(".ak").value.trim(), secret = card.querySelector(".as").value.trim();
+        if (!key || !secret) { msg.textContent = "Enter the Cloudinary API key and secret."; return; }
+        if (cloud === "(unknown)") { msg.textContent = "These entries have no cloud name, so they cannot be purged automatically."; return; }
+        if (!confirm("Permanently delete " + items.length + " files from Cloudinary account '" + cloud + "'?")) return;
+        busy(b, true, "Purging...");
+        var ok = 0, fail = 0, lastErr = "";
+        try {
+          for (var n = 0; n < items.length; n++) {
+            msg.textContent = "Working... " + (n + 1) + " / " + items.length;
+            var res = await purgeOne(cloud, key, secret, items[n].publicId);
+            var r = res.json && res.json.result;
+            if (r === "ok" || r === "not found") { await markDone(items[n]); ok++; }
+            else { fail++; lastErr = (res.json && res.json.error && res.json.error.message) || ("HTTP " + res.status); }
+          }
+        } catch (er2) {
+          if (er2.blocked) {
+            msg.innerHTML = "The browser blocked the request to Cloudinary. Use <b>Copy list of IDs</b>, delete those files in the Cloudinary Media Library, then press <b>I deleted them manually</b>.";
+            busy(b, false); return;
+          }
+          throw er2;
+        } finally { busy(b, false); }
+        msg.textContent = "";
+        toast("Purged " + ok + (fail ? (", failed " + fail + ": " + lastErr) : ""), fail > 0);
+        renderTrash();
+        return;
+      }
+
+      if (act === "tgpurge" || act === "tgclear") {
+        var botId = b.dataset.bot;
+        var tItems = trashItems.filter(function (i) { return i.storage === "tg" && i.tgMsgId && (i.tgBot || "(unknown)") === botId; });
+        var bot = ((cfg.telegram || {}).bots || {})[botId];
+        if (act === "tgpurge" && bot) {
+          busy(b, true, "Deleting...");
+          try {
+            for (var t = 0; t < tItems.length; t++) {
+              msg.textContent = "Working... " + (t + 1) + " / " + tItems.length;
+              try {
+                await fetch("https://api.telegram.org/bot" + bot.token + "/deleteMessage?chat_id=" + encodeURIComponent(tItems[t].tgChat || bot.chatId) + "&message_id=" + tItems[t].tgMsgId);
+              } catch (e3) { /* ignore */ }
+              await markDone(tItems[t]);
+            }
+          } finally { busy(b, false); }
+        } else {
+          if (!confirm("Clear " + tItems.length + " entries without deleting the messages?")) return;
+          for (var c = 0; c < tItems.length; c++) await markDone(tItems[c]);
+        }
+        toast("Done");
+        renderTrash();
+      }
+    } catch (err) { msg.textContent = err.message; toast(err.message, true); }
+  });
+
+  function renderModeration() {
+    var mods = trashItems.filter(function (i) { return i.src === "mod" && i.uid; });
+    var by = groupBy(mods, function (i) { return i.uid; });
+    var rows = Object.keys(by).map(function (uid) {
+      var arr = by[uid];
+      var last = arr.reduce(function (m, x) { return Math.max(m, x.ts); }, 0);
+      return { uid: uid, count: arr.length, last: last };
+    }).sort(function (a, b) { return b.count - a.count; });
+    $("#modRows").innerHTML = rows.length ? rows.map(function (r) {
+      return "<tr><td>" + esc(nameOf[r.uid] || r.uid) + "</td><td><b>" + r.count + "</b></td><td>" + esc(fmtDate(r.last)) + "</td>" +
+        '<td><button class="sm danger" data-act="banmod" data-uid="' + esc(r.uid) + '">Ban</button>' +
+        '<button class="sm" data-act="unbanmod" data-uid="' + esc(r.uid) + '">Unban</button></td></tr>';
+    }).join("") : '<tr><td colspan="4" class="mu">No rejected images logged.</td></tr>';
+    $("#modRows").dataset.rows = JSON.stringify(rows);
+  }
+
+  $("#modRows").addEventListener("click", async function (e) {
+    var b = e.target.closest("button[data-act]"); if (!b) return;
+    var uid = b.dataset.uid, ban = b.dataset.act === "banmod";
+    if (!confirm((ban ? "Ban " : "Unban ") + (nameOf[uid] || uid) + "?")) return;
+    try { await db("PUT", "users/" + uid + "/status/banned", ban); toast("Saved"); }
+    catch (err) { toast(err.message, true); }
+  });
+
+  $("#banBulk").addEventListener("click", async function () {
+    var n = Math.max(1, Math.round(num($("#banN").value, 3)));
+    var rows = JSON.parse($("#modRows").dataset.rows || "[]").filter(function (r) { return r.count >= n; });
+    if (!rows.length) return toast("Nobody has " + n + " or more rejections.", true);
+    if (!confirm("Ban " + rows.length + " users with at least " + n + " rejected images?")) return;
+    var btn = $("#banBulk");
+    busy(btn, true, "Banning...");
+    try {
+      for (var i = 0; i < rows.length; i++) await db("PUT", "users/" + rows[i].uid + "/status/banned", true);
+      toast("Banned " + rows.length + " users.");
+    } catch (err) { toast(err.message, true); }
+    busy(btn, false);
+  });
+
+  $("#trLoad").addEventListener("click", loadTrash);
+
+    /* ============================================================
+     Setup Wizard
+     ============================================================ */
+  var TINY_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVR4nGP4//8/AAX+Av4N70a4AAAAAElFTkSuQmCC";
+
+  function setOut(el, htmlText, cls) { el.className = "pgmsg " + (cls || ""); el.innerHTML = htmlText; }
+
+  function explainCloudError(msg) {
+    var m = String(msg || "").toLowerCase();
+    if (m.indexOf("preset") >= 0 && m.indexOf("not found") >= 0)
+      return "The preset name is wrong, or it was not created in this Cloudinary account. Check the spelling in Settings → Upload → Upload presets.";
+    if (m.indexOf("whitelisted") >= 0 || m.indexOf("must supply api_key") >= 0 || m.indexOf("unsigned") >= 0)
+      return "This preset is not Unsigned. Open the preset in Cloudinary, set Signing mode to Unsigned and Save.";
+    if (m.indexOf("cloud_name") >= 0 || m.indexOf("cloud name") >= 0)
+      return "The cloud name is wrong. Copy it again from the top of your Cloudinary dashboard.";
+    return "Cloudinary said: " + msg;
+  }
+
+  async function testCloudinary(cloud, preset) {
+    var fd = new FormData();
+    fd.append("file", TINY_PNG);
+    fd.append("upload_preset", preset);
+    var r;
+    try {
+      r = await fetch("https://api.cloudinary.com/v1_1/" + encodeURIComponent(cloud) + "/image/upload", { method: "POST", body: fd });
+    } catch (e) { throw new Error("Could not reach Cloudinary. Check your internet connection."); }
+    var j = {};
+    try { j = await r.json(); } catch (e2) { j = {}; }
+    if (j.error) throw new Error(explainCloudError(j.error.message));
+    if (!j.secure_url) throw new Error("Unexpected answer from Cloudinary (HTTP " + r.status + ").");
+    var mod = "";
+    if (Array.isArray(j.moderation) && j.moderation.length) {
+      mod = j.moderation.map(function (m) { return (m.kind || "moderation") + ": " + (m.status || "?"); }).join(", ");
+    }
+    return { url: j.secure_url, moderation: mod };
+  }
+
+  $("#wCloudBtn").addEventListener("click", async function () {
+    var cloud = $("#wCloud").value.trim(), preset = $("#wPreset").value.trim();
+    var out = $("#wCloudOut"), btn = $("#wCloudBtn");
+    if (!/^[A-Za-z0-9_-]{2,}$/.test(cloud)) return setOut(out, "Enter the Cloud name (letters, numbers, - and _ only).", "t-bad");
+    if (!/^[A-Za-z0-9_.-]{2,}$/.test(preset)) return setOut(out, "Enter the upload preset name.", "t-bad");
+    busy(btn, true, "Testing...");
+    setOut(out, "Uploading a tiny test picture...", "");
+    try {
+      var res = await testCloudinary(cloud, preset);
+      var list = listFrom(cfg.cloudinary && cfg.cloudinary.accounts);
+      var dup = list.filter(function (a) { return a.cloudName === cloud && a.uploadPreset === preset; })[0];
+      if (!dup) {
+        await db("POST", "config/cloudinary/accounts", {
+          label: cloud, cloudName: cloud, uploadPreset: preset, enabled: true, full: false, order: nextOrder(list), createdAt: Date.now()
+        });
+        await loadConfig();
+      }
+      var h = "Works! The test upload succeeded and the account is saved.";
+      h += res.moderation
+        ? "<br>Safety check is active (" + esc(res.moderation) + ")."
+        : "<br><b>The safety check is not active yet.</b> Photos will upload without being scanned. To turn it on, enable the Amazon Rekognition AI Moderation add-on and select it in the preset.";
+      setOut(out, h, "t-ok");
+    } catch (e) { setOut(out, esc(e.message), "t-bad"); }
+    busy(btn, false);
+  });
+
+  function normChat(s) {
+    s = String(s || "").trim();
+    var m = s.match(/t\.me\/(?:c\/)?([A-Za-z0-9_]+)/i);
+    if (m) { return /^\d+$/.test(m[1]) ? ("-100" + m[1]) : ("@" + m[1]); }
+    if (/^-?\d+$/.test(s)) return s;
+    if (/^@[A-Za-z0-9_]{4,}$/.test(s)) return s;
+    if (/^[A-Za-z][A-Za-z0-9_]{4,}$/.test(s)) return "@" + s;
+    return "";
+  }
+
+  function tgExplain(desc) {
+    var d = String(desc || "").toLowerCase();
+    if (d.indexOf("chat not found") >= 0) return "Telegram cannot find this channel. Check the name or number, and make sure the bot was added as an administrator.";
+    if (d.indexOf("not a member") >= 0 || d.indexOf("kicked") >= 0) return "The bot is not in this channel. Add it as an administrator.";
+    if (d.indexOf("not enough rights") >= 0 || d.indexOf("have no rights") >= 0) return "The bot is not allowed to post. Give it the “Post messages” right.";
+    if (d.indexOf("unauthorized") >= 0) return "The bot token is wrong. Copy it again from @BotFather.";
+    if (d.indexOf("webhook") >= 0) return "This bot has a webhook set, so channels cannot be auto-detected. Type the channel name yourself.";
+    return desc || "Telegram returned an error.";
+  }
+
+  function chatsFromUpdates(j) {
+    var seen = {}, out = [];
+    ((j && j.result) || []).forEach(function (u) {
+      var c = (u.my_chat_member && u.my_chat_member.chat) || (u.channel_post && u.channel_post.chat) ||
+              (u.edited_channel_post && u.edited_channel_post.chat) || (u.message && u.message.chat);
+      if (!c || c.type === "private" || seen[c.id]) return;
+      seen[c.id] = true;
+      out.push({ id: String(c.id), title: c.title || c.username || String(c.id), type: c.type });
+    });
+    return out;
+  }
+
+  async function tgCall(base, method) {
+    var r = await fetch(base + "/" + method);
+    var j = await r.json();
+    if (!j.ok) throw new Error(tgExplain(j.description));
+    return j.result;
+  }
+
+  $("#wTgFind").addEventListener("click", async function () {
+    var token = $("#wTgToken").value.trim(), out = $("#wTgOut"), box = $("#wTgChats"), btn = $("#wTgFind");
+    box.innerHTML = "";
+    if (!/^\d{6,}:[A-Za-z0-9_-]{20,}$/.test(token)) return setOut(out, "Paste the bot token first.", "t-bad");
+    busy(btn, true, "Looking...");
+    try {
+      var r = await fetch("https://api.telegram.org/bot" + token + "/getUpdates?limit=100");
+      var j = await r.json();
+      if (!j.ok) throw new Error(tgExplain(j.description));
+      var chats = chatsFromUpdates(j);
+      if (!chats.length) {
+        setOut(out, "No channel found yet. Add the bot as an administrator of your channel, post any message in the channel, then press this button again (it only sees activity from the last 24 hours).", "t-bad");
+      } else {
+        setOut(out, "Tap your channel:", "");
+        box.innerHTML = chats.map(function (c) {
+          return '<button class="sm" data-chat="' + esc(c.id) + '">' + esc(c.title) + " (" + esc(c.id) + ")</button>";
+        }).join("");
+      }
+    } catch (e) { setOut(out, esc(e.message), "t-bad"); }
+    busy(btn, false);
+  });
+
+  $("#wTgChats").addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-chat]"); if (!b) return;
+    $("#wTgChat").value = b.dataset.chat;
+    setOut($("#wTgOut"), "Selected. Now press “Test &amp; save”.", "");
+  });
+
+  $("#wTgBtn").addEventListener("click", async function () {
+    var token = $("#wTgToken").value.trim(), rawChat = $("#wTgChat").value.trim();
+    var out = $("#wTgOut"), btn = $("#wTgBtn");
+    if (!/^\d{6,}:[A-Za-z0-9_-]{20,}$/.test(token)) return setOut(out, "The bot token looks wrong. Copy it again from @BotFather.", "t-bad");
+    var chatIn = normChat(rawChat);
+    if (!chatIn) return setOut(out, "Enter the channel as @username, or paste a link to any message in it. Private invite links (t.me/+...) cannot be used.", "t-bad");
+    busy(btn, true, "Testing...");
+    var base = "https://api.telegram.org/bot" + token;
+    var log = [];
+    try {
+      var me = await tgCall(base, "getMe");
+      log.push("Bot @" + me.username + " is valid.");
+      setOut(out, esc(log.join(" ")) + " Checking the channel...", "");
+      var chat = await tgCall(base, "getChat?chat_id=" + encodeURIComponent(chatIn));
+      var chatId = String(chat.id);
+      var title = chat.title || chat.username || chatId;
+      var mem = await tgCall(base, "getChatMember?chat_id=" + encodeURIComponent(chatId) + "&user_id=" + me.id);
+      if (mem.status !== "administrator" && mem.status !== "creator") throw new Error("The bot is in the channel but is not an administrator. Make it an administrator.");
+      if (chat.type === "channel" && mem.can_post_messages === false) throw new Error("The bot is an administrator but cannot post. Turn on “Post messages”.");
+      log.push("Channel “" + title + "” found.");
+      setOut(out, esc(log.join(" ")) + " Sending a test file...", "");
+
+      var fd = new FormData();
+      fd.append("chat_id", chatId);
+      fd.append("disable_notification", "true");
+      fd.append("document", new Blob(["Lockify setup test"], { type: "application/octet-stream" }), "lockify_test.bin");
+      var sentRes = await fetch(base + "/sendDocument", { method: "POST", body: fd });
+      var sent = await sentRes.json();
+      if (!sent.ok) throw new Error("The bot could not upload a file: " + tgExplain(sent.description));
+      var fileId = sent.result.document.file_id, mid = sent.result.message_id;
+      await tgCall(base, "getFile?file_id=" + encodeURIComponent(fileId));
+      try { await fetch(base + "/deleteMessage?chat_id=" + encodeURIComponent(chatId) + "&message_id=" + mid); } catch (e0) { /* ignore */ }
+      log.push("Upload and download both work.");
+
+      var list = listFrom(cfg.telegram && cfg.telegram.bots);
+      var dup = list.filter(function (b) { return b.token === token; })[0];
+      if (dup) await db("PATCH", "config/telegram/bots/" + dup.id, { chatId: chatId, enabled: true, full: false });
+      else await db("POST", "config/telegram/bots", {
+        label: "@" + me.username, token: token, chatId: chatId, enabled: true, full: false, order: nextOrder(list), createdAt: Date.now()
+      });
+      await loadConfig();
+      setOut(out, "Works! " + esc(log.join(" ")) + " The bot is saved." +
+        (chat.username ? "<br>You can now make the channel <b>private</b> (channel settings). The app uses the channel number, so it keeps working." : ""), "t-ok");
+    } catch (e) { setOut(out, esc(e.message), "t-bad"); }
+    busy(btn, false);
+  });
+
+  $("#wLimBtn").addEventListener("click", async function () {
+    var out = $("#wLimOut"), btn = $("#wLimBtn");
+    busy(btn, true);
+    try {
+      var l = cfg.limits || {};
+      await db("PATCH", "config/limits", {
+        freeBytes: l.freeBytes != null ? l.freeBytes : 209715200,
+        maxImageBytes: l.maxImageBytes != null ? l.maxImageBytes : 10485760,
+        maxTelegramBytes: l.maxTelegramBytes != null ? l.maxTelegramBytes : 20971520
+      });
+      await loadConfig();
+      setOut(out, "Saved. You can change the numbers later in the Limits &amp; Ads tab.", "t-ok");
+    } catch (e) { setOut(out, esc(e.message), "t-bad"); }
+    busy(btn, false);
+  });
+
+  $("#hcRun").addEventListener("click", async function () {
+    var out = $("#hcOut"), btn = $("#hcRun");
+    busy(btn, true, "Checking...");
+    var rows = [];
+    function add(ok, text, fix) {
+      rows.push('<div style="padding:6px 0"><span class="badge ' + (ok ? "b-ok" : "b-er") + '">' + (ok ? "OK" : "Fix") + "</span> " + text +
+        (!ok && fix ? '<div class="mu" style="margin:2px 0 0 0">' + fix + "</div>" : "") + "</div>");
+    }
+    try {
+      await loadConfig();
+      add(true, "You are signed in as admin and the database answers.");
+      var pub = false;
+      try { var r = await fetch(CONFIG.dbUrl + "/config/app.json"); pub = r.ok; } catch (e) { pub = false; }
+      add(pub, "The latest Firebase rules are published.", "Open Firebase → Realtime Database → Rules, paste the rules from the Step 5 guide and press Publish.");
+      add(!!(cfg.limits && cfg.limits.freeBytes), "Storage limits are saved.", "Do Step 3 below. The app needs it to count storage.");
+      var cl = listFrom(cfg.cloudinary && cfg.cloudinary.accounts).filter(function (x) { return statusOf(x) === "active"; }).length;
+      add(cl > 0, "Photo storage (Cloudinary) accounts ready: <b>" + cl + "</b>", "Do Step 1 below.");
+      var tg = listFrom(cfg.telegram && cfg.telegram.bots).filter(function (x) { return statusOf(x) === "active"; }).length;
+      add(tg > 0, "File storage (Telegram) bots ready: <b>" + tg + "</b>", "Do Step 2 below.");
+      var idx = null;
+      try { idx = await db("GET", "userIndex", undefined, "shallow=true"); } catch (e2) { idx = null; }
+      var n = idx ? Object.keys(idx).length : 0;
+      add(n > 0, "The app has connected to your database (" + n + " user" + (n === 1 ? "" : "s") + ").",
+        "Open the app once while logged in (Home screen). If this stays empty, check the app's Firebase settings and the “userIndex” code in Home.");
+    } catch (e3) { add(false, "Could not check: " + esc(e3.message)); }
+    out.innerHTML = rows.join("");
+    busy(btn, false);
+  });
+
+  function siteBase() { return location.origin + location.pathname; }
+  function needHttps() {
+    if (location.protocol !== "https:") { toast("Open the panel from your hosted https address first, then press this button.", true); return true; }
+    return false;
+  }
+  $("#autoLinks").addEventListener("click", function () {
+    if (needHttps()) return;
+    var b = siteBase();
+    $("#pPrivacy").value = b + "?page=privacy";
+    $("#pTerms").value = b + "?page=terms";
+    $("#pDelUrl").value = b + "?page=delete";
+    toast("Links filled. Press Save.");
+  });
+  $("#autoAd").addEventListener("click", function () {
+    if (needHttps()) return;
+    $("#aUrl").value = siteBase() + "?page=ad";
+    $("#aOn").checked = true;
+    toast("Sample ad page filled. Press Save settings.");
+  });
 
   /* ============================================================
      navigation, login, logout
@@ -799,7 +1780,8 @@
   $("#lPass").addEventListener("keydown", function (e) { if (e.key === "Enter") doLogin(); });
   $("#outBtn").addEventListener("click", function () {
     S = { idToken: "", refreshToken: "", uid: "", email: "", exp: 0 };
-    cfg = {}; users = [];
+    cfg = {}; users = []; trashItems = []; nameOf = {};
+    $("#purgeBox").innerHTML = "";
     $("#appView").hidden = true; $("#loginView").hidden = false;
   });
 })();
